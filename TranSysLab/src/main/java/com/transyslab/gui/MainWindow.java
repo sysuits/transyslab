@@ -320,35 +320,6 @@ public class MainWindow {
                                 AppSetup.modelType = Constants.MODEL_TYPE_RT;
                             }
                             initSimEngines();
-
-                            engine.addActionLisener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    if (e.getSource() == engine) {
-                                        switch (e.getID()) {
-                                            case EngineEvent.UPDATE: {
-                                                SimulationClock clock = engine.getNetwork().getSimClock();
-                                                double progress = (clock.getCurrentTime() - clock.getStartTime()) / clock.getDuration();
-                                                progressBar1.setValue((int)(progress*100));
-                                                //int minutes = (int)Math.floor((clock.getCurrentTime() - clock.getStartTime())/60);
-                                                int seconds = (int)Math.floor(clock.getCurrentTime() - clock.getStartTime());
-                                                slider1.setValue(seconds);
-                                                if(slider1.getValue()>=120) {// 大于120分钟(超出时间条长度)
-                                                    updateSlider((long)clock.getCurrentTime());
-                                                    updateSignalPanel();
-                                                }
-                                            }
-                                                break;
-                                            case EngineEvent.BROADCAST: {
-                                                textArea2.setText(((EngineEvent)e).getMsg());
-                                            }
-                                                break;
-                                            default:
-                                                System.out.println("Unknown information from engine.");
-                                        }
-                                    }
-                                }
-                            });
                         }
                         catch(ConfigurationException cex)
                         {
@@ -710,7 +681,43 @@ public class MainWindow {
             default:
                 break;
         }
-        engine.loadFiles();
+
+        engine.addActionLisener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == engine) {
+                    switch (e.getID()) {
+                        case EngineEvent.UPDATE: {
+                            SimulationClock clock = engine.getNetwork().getSimClock();
+                            double progress = (clock.getCurrentTime() - clock.getStartTime()) / clock.getDuration();
+                            progressBar1.setValue((int)(progress*100));
+                            //int minutes = (int)Math.floor((clock.getCurrentTime() - clock.getStartTime())/60);
+                            int seconds = (int)Math.floor(clock.getCurrentTime() - clock.getStartTime());
+                            slider1.setValue(seconds);
+                            if(slider1.getValue()>=120) {// 大于120分钟(超出时间条长度)
+                                updateSlider((long)clock.getCurrentTime());
+                                updateSignalPanel();
+                            }
+                        }
+                        break;
+                        case EngineEvent.BROADCAST: {
+                            //if (textArea2.getLineCount()<500)
+                            //todo: after implement logger, turn back on above condition
+                            if (true)
+                                textArea2.append(((EngineEvent)e).getMsg()+"\n");
+                            else
+                                textArea2.setText(((EngineEvent)e).getMsg()+"\n");
+                            textArea2.setCaretPosition(textArea2.getText().length());
+                        }
+                        break;
+                        default:
+                            System.out.println("Unknown information from engine.");
+                    }
+                }
+            }
+        });
+
+        new Thread(()->engine.loadFiles()).start();
 
         // Network is ready for simulation
         canvas.setFirstRender(true);

@@ -40,6 +40,7 @@ public class MLPNetwork extends RoadNetwork {
 	protected LinkedList<MLPVehicle> vehPool;
 	BufferedReader bReader;
 //	public List<MLPLoop> sensors;
+	private MLPEngine mlpEngine;
 
 	//引擎输出变量
 	protected HashMap<MLPLink, List<MacroCharacter>> linkStatMap;
@@ -57,6 +58,11 @@ public class MLPNetwork extends RoadNetwork {
 		sectionStatMap = new HashMap<>();
 		laneSecMap = new HashMap<>();
 
+	}
+
+	public MLPNetwork(MLPEngine engine){
+		this();
+		this.mlpEngine = engine;
 	}
 
 	@Override
@@ -185,7 +191,9 @@ public class MLPNetwork extends RoadNetwork {
 			((MLPLink) l).addLnPosInfo();
 			((MLPLink) l).organizeTurnableDnLinks();
 			li += 1;
-			System.out.println("DEBUG message: link " + l.getId() + " " + li + "th of " + links.size());
+			String msg = "info: link " + l.getId() + " constructed " + li + " / " + links.size();
+			System.out.println(msg);
+			broadcast(msg);
 		}
 	}
 
@@ -1007,6 +1015,10 @@ public class MLPNetwork extends RoadNetwork {
 				}
 			}
 		}
+	}
+
+	public void broadcast(String msg){
+		mlpEngine.broadcast(msg);
 	}
 
 }

@@ -20,6 +20,7 @@ package com.transyslab.roadnetwork;
 import java.util.*;
 
 import com.transyslab.commons.tools.SimulationClock;
+import com.transyslab.simcore.mlp.MLPNetwork;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
@@ -69,6 +70,8 @@ public abstract class RoadNetwork extends SimpleDirectedWeightedGraph<Node, Link
 
 	protected double totalLinkLength;
 	protected double totalLaneLength;
+
+	private boolean loadingCompleted;
 
 
 
@@ -906,7 +909,10 @@ public abstract class RoadNetwork extends SimpleDirectedWeightedGraph<Node, Link
 	}
 	public void rmLastLink(){
 		Link rmLink = links.remove(links.size()-1);
-		System.out.println("DEBUG: remove centerRoad ID = " + rmLink.getId());
+		String msg = "info: Incomplete centerRoad no. " + rmLink.getId() + " has been removed";
+		System.out.println(msg);
+		if (this instanceof MLPNetwork)
+			((MLPNetwork)this).broadcast(msg);
 		rmLink.getUpNode().rmDnLink(rmLink);
 		rmLink.getDnNode().rmUpLink(rmLink);
 	}
@@ -936,6 +942,14 @@ public abstract class RoadNetwork extends SimpleDirectedWeightedGraph<Node, Link
 						});
 			}
 		}
+	}
+
+	public boolean checkLoadingCompleted(){
+		return loadingCompleted;
+	}
+
+	public void loadingComplete(){
+		loadingCompleted=true;
 	}
 
 }

@@ -201,7 +201,7 @@ public class JOGLCanvas extends GLCanvas implements GLEventListener, KeyListener
 		// ----- Your OpenGL rendering code here (render a white triangle for
 		// testing) -----
 
-		if(drawableNetwork !=null){
+		if(drawableNetwork !=null && drawableNetwork.checkLoadingCompleted()){
 			if(isFirstRender){
 				GeoPoint center = drawableNetwork.getWorldSpace().getCenter();
 				cam.initFirstLookAt(new GeoPoint(center.getLocationX(), center.getLocationY(),1000), center, new float[]{0.0f, 1.0f, 0.0f});

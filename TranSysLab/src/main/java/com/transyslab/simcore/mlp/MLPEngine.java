@@ -100,7 +100,7 @@ public class MLPEngine extends SimulationEngine{
 		firstEntry = true;
 		mod = 0;
 
-		mlpNetwork = new MLPNetwork();
+		mlpNetwork = new MLPNetwork(this);
 		runProperties = new HashMap<>();
 		fileOutTag = "";
 
@@ -128,8 +128,11 @@ public class MLPEngine extends SimulationEngine{
 		tmp = config.getString("empMicroDataPath");
 		runProperties.put("empMicroDataPath", tmp==null || tmp.equals("") ? null : rootDir + tmp);
 		runProperties.put("outputPath", rootDir + config.getString("outputPath"));
-		if (!new File(runProperties.get("outputPath")).exists())
-			System.err.println("output dir does NOT exist.");
+		if (!new File(runProperties.get("outputPath")).exists()) {
+			String msg = "warning: output dir does NOT exist.";
+			System.err.println(msg);
+			broadcast(msg);
+		}
 
 		runProperties.put("emitSourceType", config.getString("emitSourceType"));
 		if (runProperties.get("emitSourceType").equals("FILE"))
@@ -154,7 +157,7 @@ public class MLPEngine extends SimulationEngine{
 		runningSeed = seedFixed ? Long.parseLong(config.getString("runningSeed")) : 0l;
 
 		//Statistic Output setting
-		getSimParameter().statWarmUp = Double.parseDouble(config.getString("statWarmUp"));//set time to Parameter
+ 		getSimParameter().statWarmUp = Double.parseDouble(config.getString("statWarmUp"));//set time to Parameter
 		getSimParameter().statStepSize = Double.parseDouble(config.getString("statTimeStep"));
 		//输出变量在loadfiles后再进行初始化，当前只将String读入
 		runProperties.put("statLinkIds",config.getString("statLinkIds"));
@@ -404,6 +407,7 @@ public class MLPEngine extends SimulationEngine{
 			// 解释路网输出变量
 			mlpNetwork.initLinkStatMap(runProperties.get("statLinkIds"));
 			mlpNetwork.initSectionStatMap(runProperties.get("statDetNames"));
+			mlpNetwork.loadingComplete();
 		}catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -727,8 +731,8 @@ public class MLPEngine extends SimulationEngine{
 
 			while (simulationLoop()>=0) {
 				count++;
-				engineEvent.setMsg("sim time: " + getSimClock().getCurrentTime() + " s.");
-				informEngineListeners(engineEvent);
+//				engineEvent.setMsg("sim time: " + getSimClock().getCurrentTime() + " s.");
+//				informEngineListeners(engineEvent);
 			}
 
 			String msg = "runtime: " + (System.currentTimeMillis()-t0) + " ms." + "\n" +
@@ -930,5 +934,11 @@ public class MLPEngine extends SimulationEngine{
 		for (Object listener : actionListeners) {
 			((ActionListener) listener).actionPerformed(e);
 		}
+	}
+
+	public void broadcast(String msg){
+		EngineEvent e = new EngineEvent(this, EngineEvent.BROADCAST);
+		e.setMsg(msg);
+		informEngineListeners(e);
 	}
 }

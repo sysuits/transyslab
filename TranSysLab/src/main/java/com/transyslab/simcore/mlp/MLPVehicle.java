@@ -574,7 +574,9 @@ public class MLPVehicle extends Vehicle{
 	}
 
 	public void switchLane(MLPVehicle tarVeh){
-		System.out.println("warning: " + getId() + " changes lane with " + tarVeh.getId() + " in link " + getLink().getId());
+		String msg = "warning: vehicle no. " + getId() + " & " + tarVeh.getId() + " lane changing deadlock on link no." + getLink().getId();
+		System.out.println(msg);
+		getMLPNetwork().broadcast(msg);
 		MLPLane theLane = getLane();
 		MLPLane tarLane = tarVeh.getLane();
 		theLane.removeVeh(this,false);

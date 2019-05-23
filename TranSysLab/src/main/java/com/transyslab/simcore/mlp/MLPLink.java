@@ -17,6 +17,7 @@
 package com.transyslab.simcore.mlp;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import com.transyslab.roadnetwork.*;
@@ -435,6 +436,7 @@ public class MLPLink extends Link {
 	}
 
 	protected void organizeTurnableDnLinks(){
+		AtomicBoolean conflictExist = new AtomicBoolean(false);
 		getEndSegment().getLanes().forEach(lane -> {
 			((MLPLane)lane).dnStrmConns.forEach(conn -> {
 				if (turnableNextLinks.get(conn.dnLinkID())==null){
@@ -442,10 +444,15 @@ public class MLPLink extends Link {
 					if (((MLPNode) getDnNode()).dnLinkExist(tdLink))
 						turnableNextLinks.put(conn.dnLinkID(),tdLink);
 					else
-						System.out.println("warning: turning conflicts at downstream of link no. " + getId());
+						conflictExist.set(true);
 				}
 			});
 		});
+		if (conflictExist.get()) {
+			String msg = "warning: turning conflicts at downstream of link no. " + getId();
+			System.out.println(msg);
+			((MLPNetwork)getNetwork()).broadcast(msg);
+		}
 	}
 
 	public List<MLPLink> getTurnableDnLinks(){
