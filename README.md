@@ -17,4 +17,4 @@ which is also coming soon.
 
 ## Publications
 
-- [Mesoscopic modelling and analysis of traffic flow based on stationary observations](www.sciencedirect.com/science/article/pii/S1877050919305721)
+- [Mesoscopic modelling and analysis of traffic flow based on stationary observations](https://www.sciencedirect.com/science/article/pii/S1877050919305721)
