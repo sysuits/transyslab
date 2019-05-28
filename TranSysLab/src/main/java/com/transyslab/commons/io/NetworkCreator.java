@@ -42,7 +42,7 @@ public class NetworkCreator {
         // 读取节点数据, roadid为空的记录为交叉口节点
         sql = "select nodeid, st_transform(geom,2362), type from topo_node ";
         // 按节点集筛选
-        if (nodeIdList != null)
+        if (nodeIdList != null && !nodeIdList.equals(""))
             sql += "where nodeid in (" + nodeIdList + ")";
         else
             sql += "where roadid isnull";
@@ -59,13 +59,13 @@ public class NetworkCreator {
         List<long[]> linkid = new ArrayList<>();
         if(hasDoubleCR) {
             sql = "select id, fnode_, tnode_ from doubleline ";
-            if (nodeIdList != null)
+            if (nodeIdList != null && !nodeIdList.equals(""))
                 sql += "where fnode_ in (" + nodeIdList + ") and tnode_ in (" + nodeIdList + ")";
             linkid = readDoubleCR(qr, sql);
         }
         // 读取单线数据
         sql = "select gid, name, fnode, tnode from topo_centerroad ";
-        if (nodeIdList != null)
+        if (nodeIdList != null && !nodeIdList.equals(""))
             sql += "where fnode in (" + nodeIdList + ") and tnode in (" + nodeIdList + ")";
         // 中心线数据
         result = qr.query(sql, new ArrayListHandler());

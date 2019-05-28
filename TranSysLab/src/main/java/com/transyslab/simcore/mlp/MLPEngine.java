@@ -184,6 +184,8 @@ public class MLPEngine extends SimulationEngine{
 
 		//average mode
 		runProperties.put("avgMode",config.getString("avgMode"));
+
+		runProperties.put("nodes2Construct",config.getString("nodes2Construct"));
 	}
 
 	@Override
@@ -392,8 +394,8 @@ public class MLPEngine extends SimulationEngine{
 		//XmlParser.parseNetwork(mlpNetwork, runProperties.get("roadNetworkPath"));
 		try {
 			// 从数据库读入全网数据
-//			NetworkCreator.readDataFromDB(mlpNetwork, "4927,4893,4944,4808,4806,4835,4694,4697,4706", true);
-			NetworkCreator.readDataFromDB(mlpNetwork, null, false);
+			String nodeList = runProperties.get("nodes2Construct");
+			NetworkCreator.readDataFromDB(mlpNetwork, nodeList, false);
 			// 读入路网数据后组织路网不同要素的关系
 			mlpNetwork.calcDbStaticInfo();
 //			// 读入路网数据后组织路网不同要素的关系
