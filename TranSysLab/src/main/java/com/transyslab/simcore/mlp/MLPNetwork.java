@@ -143,6 +143,7 @@ public class MLPNetwork extends RoadNetwork {
 		//补充车道编号的信息
 		for (Lane l: lanes){
 			((MLPLane) l).calLnPos();
+			((MLPLane) l).createSignalArrow();
 		}
 		
 		for (Segment seg: segments){

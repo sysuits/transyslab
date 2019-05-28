@@ -64,9 +64,9 @@ public class JOGLCanvas extends GLCanvas implements GLEventListener, KeyListener
 	public static final double LAYER_LANE = 0.1;
 	public static final double LAYER_BOUNDARY = 0.4;
 	public static final double LAYER_CONNECTOR = 0.4;
-	public static final double LAYER_VEHICLE = 0.5;
+	public static final double LAYER_VEHICLE = 0.8;
 	public static final double LAYER_SENSOR = 0.4;
-	public static final double LAYER_SIGNALARROW = 0.4;
+	public static final double LAYER_SIGNALARROW = 0.6;
 	private GLU glu; // for the GL Utility
 	private RoadNetwork drawableNetwork;
 	private Camera cam;
@@ -147,8 +147,9 @@ public class JOGLCanvas extends GLCanvas implements GLEventListener, KeyListener
 		glu.gluPerspective(45, widthHeightRatio, 0.1, 10000);
 		// YYL end
 		gl.glClearDepth(1.0f); // set clear depth value to farthest
-		gl.glEnable(GL_DEPTH_TEST); // enables depth testing
-		gl.glDepthFunc(GL_LESS); // the type of depth test to do
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glEnable(GL_BLEND);
+
 		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // best
 		// perspective
 		// correction
@@ -248,14 +249,29 @@ public class JOGLCanvas extends GLCanvas implements GLEventListener, KeyListener
 		for(Lane itrLane:drawableNetwork.getLanes()){
 			ShapeUtil.drawPolyline(gl,itrLane.getCtrlPoints(),2, Constants.COLOR_WHITE,LAYER_LANE);
 		}
-		// Connector 线
 
-		for(int i=0; i< drawableNetwork.nConnectors();i++){
-			Connector tmpConnector = drawableNetwork.getConnector(i);
-			if (tmpConnector instanceof MLPConnector && ((MLPConnector)tmpConnector).vehNumOnConn()>0)
-				ShapeUtil.drawPolyline(gl,tmpConnector.getShapePoints(),2, Constants.COLOR_GOLDEN, LAYER_CONNECTOR);
-			else
-				ShapeUtil.drawPolyline(gl,tmpConnector.getShapePoints(),2, Constants.COLOR_GREY_WHITE, LAYER_CONNECTOR);
+		// moved to signal arrow
+		// Connector 线
+//		for(int i=0; i< drawableNetwork.nConnectors();i++){
+//			Connector tmpConnector = drawableNetwork.getConnector(i);
+//			if (tmpConnector instanceof MLPConnector && ((MLPConnector)tmpConnector).vehNumOnConn()>0)
+//				ShapeUtil.drawPolyline(gl,tmpConnector.getShapePoints(),2, Constants.COLOR_GOLDEN, LAYER_CONNECTOR);
+//			else
+//				ShapeUtil.drawPolyline(gl,tmpConnector.getShapePoints(),2, Constants.COLOR_GREY_WHITE, LAYER_CONNECTOR);
+//		}
+
+		// SignalArrow 箭头
+		for(int i=0; i< drawableNetwork.nLanes();i++){
+			float[] saColor;
+			Lane itrLane = drawableNetwork.getLane(i);
+			for(SignalArrow sa:itrLane.getSignalArrows()){
+				if(curFrame ==null || (saColor = curFrame.getSignalColors().get(sa))==null)
+					saColor = Constants.COLOR_WHITE;
+				if (saColor!=Constants.COLOR_RED)
+					ShapeUtil.drawPolylineAlpha(gl,sa.getReferConn().getShapePoints(),2, saColor, 0.2f, LAYER_CONNECTOR);
+				ShapeUtil.drawPolyline(gl,sa.getPolyline(),2, saColor,LAYER_SIGNALARROW);
+				ShapeUtil.drawPolygon(gl,sa.getArrowTip(),saColor,false,LAYER_SIGNALARROW);
+			}
 		}
 
 		boolean isPause = (status == ANIMATOR_PAUSE);
@@ -265,18 +281,6 @@ public class JOGLCanvas extends GLCanvas implements GLEventListener, KeyListener
 		if (isPause && mode == ANIMATOR_FRAME_ADVANCE){
 			curFrame = FrameQueue.getInstance().poll(false);
 			mode = 0;
-		}
-
-		// SignalArrow 箭头
-		for(int i=0; i< drawableNetwork.nLanes();i++){
-			float[] saColor;
-			Lane itrLane = drawableNetwork.getLane(i);
-			for(SignalArrow sa:itrLane.getSignalArrows()){
-				if(curFrame ==null || (saColor = curFrame.getSignalColors().get(sa))==null)
-					saColor = Constants.COLOR_WHITE;
-				ShapeUtil.drawPolyline(gl,sa.getPolyline(),2, saColor,LAYER_SIGNALARROW);
-				ShapeUtil.drawPolygon(gl,sa.getArrowTip(),saColor,false,LAYER_SIGNALARROW);
-			}
 		}
 
 		if(curFrame !=null){

@@ -79,9 +79,9 @@ public class GeoPoint {
 	 */
 
 	public GeoPoint intermediate(GeoPoint p, double r) {
-		return new GeoPoint(r * this.locCoods[0] + (1.0 - r) * p.locCoods[0], 
-						 r * this.locCoods[1] + (1.0 - r) * p.locCoods[1], 
-				         r * this.locCoods[2] + (1.0 - r) * p.locCoods[2]);
+		return new GeoPoint((1.0 - r) * this.locCoods[0] + r * p.locCoods[0],
+				(1.0 - r) * this.locCoods[1] + r * p.locCoods[1],
+				(1.0 - r) * this.locCoods[2] + r * p.locCoods[2]);
 	}
 
 	public double getLocationX() {
@@ -151,6 +151,26 @@ public class GeoPoint {
 			}
 		}
 		return locCoodsf;
+	}
+	public GeoPoint derectionVector(GeoPoint endPoint){
+		GeoPoint d = endPoint.minus(this);
+		return d.times(1.0/distance(endPoint));
+	}
+	public GeoPoint add(GeoPoint b){
+		return new GeoPoint(this.getLocationX() + b.getLocationX(),
+				this.getLocationY() + b.getLocationY(),
+				this.getLocationZ() + b.getLocationZ());
+	}
+	public GeoPoint minus(GeoPoint b){
+		return new GeoPoint(this.getLocationX() - b.getLocationX(),
+				this.getLocationY() - b.getLocationY(),
+				this.getLocationZ() - b.getLocationZ());
+	}
+	public GeoPoint times(double x){
+		return new GeoPoint(locCoods[0]*x,locCoods[1]*x,locCoods[2]*x);
+	}
+	public double cross(GeoPoint b){
+		return this.getLocationX()*b.getLocationY() - this.getLocationY()*b.getLocationX();
 	}
 
 }

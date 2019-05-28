@@ -142,6 +142,8 @@ public abstract class SimulationEngine {
 				double tt = etime.toSecondOfDay();
 				if (sNode == null || sNode.getId() != nodeId) {
 					sNode = getNetwork().findNode(nodeId);
+					//todo: log here, some node may change to signalized intersection
+					sNode.setType(Constants.NODE_TYPE_SIGNALIZED_INTERSECTION);
 					plan = null;
 				}
 				if (plan == null || plan.getId() != planId) {

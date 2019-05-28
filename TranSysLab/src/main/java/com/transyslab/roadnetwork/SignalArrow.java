@@ -33,12 +33,14 @@ public class SignalArrow implements Comparable<SignalArrow>{
     protected float[] color = Constants.COLOR_WHITE;
     protected String direction;
     protected boolean rightTurnFree;
+    protected Connector referConn;
 
-    public SignalArrow(int id, int type, GeoPoint rectgFP, GeoPoint rectgEP){
+    public SignalArrow(int id, int type, GeoPoint rectgFP, GeoPoint rectgEP, String dir){
         this.id = id;
         this.type = type;
         this.arrowTip = new GeoPoint[3];
         this.polyline = new GeoPoint[3];
+        this.direction = dir;
         initialize(rectgFP,rectgEP);
     }
     public GeoPoint[] getPolyline(){
@@ -63,10 +65,10 @@ public class SignalArrow implements Comparable<SignalArrow>{
         r = r + 6.0/entrance.getGeoLength();
         GeoPoint rectgEP = entrance.endPnt.intermediate(entrance.startPnt,r);*/
         // polyline fpoint
-        polyline[0] = rectgEP.intermediate(rectgFP,1.0/6.0);// 箭头起点偏移1m
-        polyline[1] = rectgEP.intermediate(polyline[0],(LINELENGTH - TURNLENGTH)/6.0);
-        polyline[2] = rectgEP.intermediate(polyline[1],TURNLENGTH/6.0);
-        arrowTip[0] = rectgEP.intermediate(polyline[2], TIPLENGTH/6.0);
+        polyline[0] = rectgFP.intermediate(rectgEP,1.0/6.0);// 箭头起点偏移1m
+        polyline[1] = polyline[0].intermediate(rectgEP,(LINELENGTH - TURNLENGTH)/6.0);
+        polyline[2] = polyline[1].intermediate(rectgEP,TURNLENGTH/6.0);
+        arrowTip[0] = polyline[2].intermediate(rectgEP, TIPLENGTH/6.0);
         GeoSurface rectangle2 = GeoUtil.lineToRectangle(polyline[2],arrowTip[0], TIPLENGTH / Math.tan(Math.PI/3.0),true);
         arrowTip[1] = rectangle2.getKerbList().get(0);
         arrowTip[2] = rectangle2.getKerbList().get(1);
@@ -107,5 +109,11 @@ public class SignalArrow implements Comparable<SignalArrow>{
             return -1;
         else
             return 0;
+    }
+    public Connector getReferConn(){
+        return referConn;
+    }
+    public void setReferConn(Connector conn){
+        referConn = conn;
     }
 }

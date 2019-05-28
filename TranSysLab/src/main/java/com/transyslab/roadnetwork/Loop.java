@@ -190,7 +190,7 @@ public class Loop implements Sensor{
 		// TODO 不用百分比，用具体线性参考位置
 		GeoPoint itplPoint = lane.itplAmongCtrlPoints(position*lane.getGeoLength());
 		double lenScale = zoneLength/ itplPoint.distance(lane.getCtrlPoints().get(0));
-		GeoPoint startPnt = itplPoint.intermediate(lane.getCtrlPoints().get(0),1-lenScale);
+		GeoPoint startPnt = itplPoint.intermediate(lane.getCtrlPoints().get(0),lenScale);
 		surface = GeoUtil.lineToRectangle(startPnt, itplPoint, lane.getWidth(),true);
 	}
 	public void clean(){

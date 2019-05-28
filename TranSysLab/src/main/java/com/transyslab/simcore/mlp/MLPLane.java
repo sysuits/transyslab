@@ -23,9 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.transyslab.commons.tools.SimulationClock;
-import com.transyslab.roadnetwork.Constants;
-import com.transyslab.roadnetwork.Lane;
-import com.transyslab.roadnetwork.Segment;
+import com.transyslab.roadnetwork.*;
 
 public class MLPLane extends Lane implements Comparator<MLPLane>{
 	private double capacity_;
@@ -506,5 +504,32 @@ public class MLPLane extends Lane implements Comparator<MLPLane>{
 
 	public List<MLPConnector> connsToDnLink(Long linkId){
 		return dnStrmConns.stream().filter(c->c.dnLinkID()==linkId).collect(Collectors.toList());
+	}
+
+	public void createSignalArrow(){
+		for (MLPConnector conn: dnStrmConns) {
+			//1st point of connector as start point of arrow
+			GeoPoint fp = conn.getShapePoints().get(0);
+			//last section of lane curve as direction of arrow
+			int idx = getCtrlPoints().size() - 1;
+			GeoPoint laneDirVector = getCtrlPoints().get(idx-1).derectionVector(getCtrlPoints().get(idx));
+			//fp + dirVec is the end point of arrow
+			GeoPoint ep = fp.add(laneDirVector.times(6.0));
+
+			//determine turning direction
+			double torlerantAngle = Math.PI * 20.0 / 180.0;//20 degree
+			double torlerance = Math.sin(torlerantAngle);
+			idx = conn.getShapePoints().size() - 1;
+			GeoPoint turnDirVector = fp.derectionVector(conn.getShapePoints().get(idx));
+			double crossProduct = laneDirVector.cross(turnDirVector);
+			String dir = crossProduct > torlerance ? "L" :
+					crossProduct < -torlerance ? "R" :
+							"S";
+
+			SignalArrow arrow = new SignalArrow(0,0,fp,ep,dir);
+			arrow.setReferConn(conn);
+
+			this.signalArrows.add(arrow);
+		}
 	}
 }

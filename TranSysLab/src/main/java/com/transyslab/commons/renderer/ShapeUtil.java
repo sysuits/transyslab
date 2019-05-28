@@ -57,6 +57,16 @@ public class ShapeUtil {
 		}
 		gl.glEnd();
 	}
+	public static void drawPolylineAlpha(GL2 gl, List<GeoPoint> points, float linewidth, float[] color, float alpha, double shiftZ){
+		gl.glColor4f(color[0], color[1], color[2], alpha);
+		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		gl.glLineWidth(linewidth);
+		gl.glBegin(GL_LINE_STRIP);
+		for(GeoPoint point:points){
+			gl.glVertex3d(point.getLocationX(),point.getLocationY(),point.getLocationZ()+shiftZ);
+		}
+		gl.glEnd();
+	}
 	public static void drawPoint(GL2 gl, GeoPoint pos, int radius, float[] color, boolean isSelected,double shiftZ) {
 		gl.glColor3f(color[0], color[1], color[2]);
 		if(isSelected)

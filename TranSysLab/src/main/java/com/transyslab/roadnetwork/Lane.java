@@ -125,7 +125,7 @@ public class Lane implements NetworkObject,Comparable<Lane> {
 		// 投影到对应的折线段上
 		GeoPoint startPnt = ctrlPoints.get(index-1);
 		GeoPoint endPnt = ctrlPoints.get(index);
-		return endPnt.intermediate(startPnt,distance/l);
+		return endPnt.intermediate(startPnt,1.0-distance/l);
 	}
 	/*
             public GeoPoint getEndPnt(){
