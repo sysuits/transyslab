@@ -48,6 +48,7 @@ public class MLPParameter extends Parameter {
 //	final static double PHYSICAL_SPD_LIM = 120/3.6; // meter/s
 	private double simStepSize;
 	private double lc_sensitivity;
+	private double lcDeadlockReleaseProb;
 
 	//输出时间设置
 	protected double statWarmUp;
@@ -80,6 +81,7 @@ public class MLPParameter extends Parameter {
 //		queueParam[2] = 100.0f;// seconds
 		simStepSize = 0.0;
 		lc_sensitivity = 1.0;
+		lcDeadlockReleaseProb = 0.1;
 	}
 	public double getUpdateStepSize() {
 		return updateStepSize_;
@@ -203,5 +205,13 @@ public class MLPParameter extends Parameter {
 
 	public void setLCSensitivity(double arg) {
 		lc_sensitivity = arg;
+	}
+
+	public double lcDeadlockReleaseProb(){
+		return lcDeadlockReleaseProb;
+	}
+
+	public void setLcDeadlockReleaseProb(double lcdlp){
+		lcDeadlockReleaseProb = lcdlp;
 	}
 }

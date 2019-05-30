@@ -1000,17 +1000,19 @@ public class MLPNetwork extends RoadNetwork {
 					continue;
 				MLPVehicle bblocking = blocking.getLCBlockingVeh();
 				if (bblocking!=null && bblocking.equals(veh)) {
-					if (blocking.getLength()==veh.getLength()){
-						//switch lane
-						veh.switchLane(blocking);
-						int buffer = ((MLPParameter)getSimParameter()).getLCBuff();
-						blocking.buffer = buffer;
-						veh.buffer = buffer;
-					}
-					else {
-						//todo: two vehicles with different length should be careful about front & back gap.
-						blocking.setNextLink(null);
-						veh.setNextLink(null);
+					if (getSysRand().nextDouble()<=0.1){//reduce chance to process
+						if (blocking.getLength()==veh.getLength()){
+							//switch lane
+							veh.switchLane(blocking);
+							int buffer = ((MLPParameter)getSimParameter()).getLCBuff();
+							blocking.buffer = buffer;
+							veh.buffer = buffer;
+						}
+						else {
+							//todo: two vehicles with different length should be careful about front & back gap.
+							blocking.setNextLink(null);
+							veh.setNextLink(null);
+						}
 					}
 					dealedVehID.add(blocking.getId());
 				}

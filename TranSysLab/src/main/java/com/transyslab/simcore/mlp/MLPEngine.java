@@ -234,7 +234,7 @@ public class MLPEngine extends SimulationEngine{
 			loadTime += loadTimeStep;
 //			System.out.println(Thread.currentThread().getName() + " loading day " + now/3600/24 );
 		}
-		
+
 		//读入发车表
 		mlpNetwork.loadEmtTable();
 		
@@ -848,6 +848,7 @@ public class MLPEngine extends SimulationEngine{
 		double vp = config.getDouble("vp");
 		double gamma1 = config.getDouble("gamma1");
 		double gamma2 = config.getDouble("gamma2");
+		double lcDeadlockReleaseProb = config.getDouble("lcDeadlockReleaseProb");
 
 
 		MLPParameter allParas = (MLPParameter) mlpNetwork.getSimParameter();
@@ -876,6 +877,7 @@ public class MLPEngine extends SimulationEngine{
 		allParas.CF_NEAR = allParas.limitingParam_[0];//锁定与kjam吻合
 
 		allParas.setLCPara(new double[] {gamma1, gamma2});
+		allParas.setLcDeadlockReleaseProb(lcDeadlockReleaseProb);
 	}
 
 	public void setParameter(String parameterName, double value) {
