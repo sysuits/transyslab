@@ -207,6 +207,9 @@ public class MLPEngine extends SimulationEngine{
 			mlpNetwork.renewSysRandSeed();
 			mlpNetwork.resetReleaseTime();
 			updateTime_ = now + ((MLPParameter) mlpNetwork.getSimParameter()).updateStepSize_;
+			String msg = "info: time " + now + " agent counts: " + mlpNetwork.veh_list.size();
+			System.out.println(msg);
+			broadcast(msg);
 			//update event
 			informEngineListeners(new EngineEvent(this, EngineEvent.UPDATE));
 		}
