@@ -73,6 +73,11 @@ public class MLPConnector extends Connector {
         return vehsOnConn.size();
     }
 
+    public int totalQNum() {
+        return upLane.upStrmConns.stream().
+                mapToInt(MLPConnector::queueNum).sum();
+    }
+
     public boolean checkVolume(MLPVehicle mlpv) {
         MLPVehicle tail_ = getTail();
         if (tail_ != null &&
@@ -144,7 +149,7 @@ public class MLPConnector extends Connector {
 //        double rate = node.getPassSpd() / link.dynaFun.getFreeFlow();
 //        return spd_normal*rate*conflictCoef();
         double alpha=1.0,beta=1.0;
-        double k = ((double)queueNum())/getLength();
+        double k = ((double)totalQNum())/getLength();
         double km = ((MLPLink) dnLane.getLink()).dynaFun.linkCharacteristics[2];
         if (k>=km)
             return 0.0;
