@@ -123,7 +123,9 @@ public class MLPVehicle extends Vehicle{
 	}
 	
 	public double Displacement(){
-		return Math.max(0.0, segment.endDSP - distance);
+		return conn == null ?
+				Math.max(0.0, segment.endDSP - distance) :
+				Math.max(0.0, conn.getLength() - distance);
 	}
 	
 	public boolean checkGapAccept(MLPLane tarLane){
@@ -422,6 +424,7 @@ public class MLPVehicle extends Vehicle{
 		length = 0.0f;
 		distance = 0.0f;
 		currentSpeed = 0.0f;
+		mileage = 0.0;
 		departTime = 0.0f;
 		timeEntersLink = 0.0f;
 		dspLinkEntrance = 0.0;
@@ -590,5 +593,31 @@ public class MLPVehicle extends Vehicle{
 		pathLinks.add(onLink);
 		Path shortPath = new Path(onLink.getUpNode(), onLink.getUpNode(), pathLinks);
 		setPath(shortPath,1);
+	}
+
+	/**
+	 * get 5 columns of vehicle location reference
+	 * @return
+	 */
+	public String getLocationRef(){
+		if (this.conn==null){
+			//on lane connector
+			return (lane.getLnPosNum() + "," +
+					getLane().getId() + "," +
+					segment.getId() + "," +
+					link.getId() + "," +
+					"");
+		}
+		else {
+			return ("" + "," +
+					"" + "," +
+					"" + "," +
+					"" + "," +
+					conn.getId());
+		}
+	}
+
+	public double currentMileage(){
+		return Displacement() + mileage();
 	}
 }

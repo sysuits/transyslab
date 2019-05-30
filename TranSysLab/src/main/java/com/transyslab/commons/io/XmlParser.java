@@ -224,7 +224,7 @@ public class XmlParser {
 		}
 	}
 	private static void parseSensor(Element node,RoadNetwork network) {
-		int tmpId = -1,tmpType = -1,tmpSegId = -1;
+		int tmpId = -1,tmpType = -1;long tmpSegId = -1;
 		String tmpName = "";
 		double interval = -1,zone = -1,pos = -1;
 		List<Attribute> list = node.attributes();
@@ -241,7 +241,7 @@ public class XmlParser {
 				if (attr.getName().equals("zone"))
 					zone = Float.parseFloat(attr.getValue());
 				if (attr.getName().equals("segid"))
-					tmpSegId = Integer.parseInt(attr.getValue());
+					tmpSegId = Long.parseLong(attr.getValue());
 				if (attr.getName().equals("id"))
 					tmpId = Integer.parseInt(attr.getValue());
 				if (attr.getName().equals("pos"))

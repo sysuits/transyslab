@@ -825,7 +825,7 @@ public class MLPNetwork extends RoadNetwork {
 			MLPLoop[] sec = Arrays.copyOf(secObj, secObj.length, MLPLoop[].class);*/
 			List<Sensor> laneSensors = sensors.stream().filter(l -> ((MLPLoop) l).detName.equals(p)).collect(Collectors.toList());
 			laneSensors.forEach(s -> laneSecMap.put((MLPLoop) s, new ArrayList<>()));
-			sectionStatMap.put(detNameStr, new ArrayList<>());
+			sectionStatMap.put(p, new ArrayList<>());
 		}
 	}
 	public List<MacroCharacter> getSecStatRecords(String detName) {

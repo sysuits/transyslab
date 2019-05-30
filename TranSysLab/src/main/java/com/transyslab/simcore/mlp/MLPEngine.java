@@ -310,16 +310,13 @@ public class MLPEngine extends SimulationEngine{
 								v.getId() + "," +
 								v.virtualType + "," +
 								v.buffer + "," +
-								v.lane.getLnPosNum() + "," +
-								v.segment.getId() + "," +
-								v.link.getId() + "," +
+								v.getLocationRef() + "," +
 								v.Displacement() + "," +
 								v.getCurrentSpeed() + "," +
 								LV + "," +
 								FV + "," +
 								v.resemblance + "," +
-								v.diMap.get(v.lane) + "," +
-								v.calMLC() + "," +
+								v.currentMileage() + "," +
 								v.getPath().getDesNode().getId() +
 								/*Thread.currentThread().getName() + "_" + mod + "," +
 								LocalDateTime.now() +*/ "\r\n"
@@ -515,7 +512,7 @@ public class MLPEngine extends SimulationEngine{
 			trackWriter = /*new DBWriter("insert into simtrack(time, rvid, vid, virtualIdx, buff, lanePos, segment, link, displacement, speed, lead, trail, tag, create_time) " +
 					"values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")*/
 					new TXTUtils(runProperties.get("outputPath") + "/" + "track" + fileOutTag + threadName + "_" + mod + ".csv");
-			trackWriter.write("TIME,RVID,VID,VIRTUALIDX,BUFF,LANEPOS,SEGMENT,LINK,DISPLACEMENT,SPEED,LEAD,FOLLOWER,IN_PLATOON,DI,P_MLC,TNODE\r\n");
+			trackWriter.write("TIME,RVID,VID,VIRTUALIDX,BUFF,LANEPOS,LANEID,SEGMENT,LINK,CONNECTORID,DISPLACEMENT,SPEED,LEAD,FOLLOWER,IN_PLATOON,MILEAGE,TNODE\r\n");
 		}
 		if (infoOn)
 			infoWriter = new TXTUtils(runProperties.get("outputPath") + "/" + "info" + fileOutTag + threadName + "_" + mod + ".txt");

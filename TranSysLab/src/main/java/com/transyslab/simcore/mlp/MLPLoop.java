@@ -81,7 +81,7 @@ public class MLPLoop extends Loop{
 						}
 					}
 					if (timeEnter==null) {
-//						System.out.println("Error: no enter record.");
+						System.out.println("Error: no enter record.");
 						continue;
 					}
 				}

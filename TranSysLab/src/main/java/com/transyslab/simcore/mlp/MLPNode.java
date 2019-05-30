@@ -172,6 +172,7 @@ public class MLPNode extends Node{
 	private void stashVeh(MLPVehicle veh, MLPLane nextLane, MLPConnector conn) {
 		MLPLane lane_ = veh.lane;
 		MLPLink link_ = veh.link;
+		veh.addMileage(link_.length());
 		SimulationClock simClock = veh.link.getNetwork().getSimClock();
 		double currentTime = simClock.getCurrentTime();
 		lane_.scheduleNextEmitTime();//passed upstream lane
