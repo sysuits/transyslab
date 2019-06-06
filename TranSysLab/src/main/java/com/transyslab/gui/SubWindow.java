@@ -17,7 +17,7 @@
 package com.transyslab.gui;
 
 import com.transyslab.commons.io.FileUtils;
-import com.transyslab.simcore.AppSetup;
+import com.transyslab.app.AppSetup;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Configurations;

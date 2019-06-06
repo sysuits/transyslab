@@ -125,7 +125,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.transyslab.simcore.AppMain</mainClass>
+							<mainClass>com.transyslab.app.AppMain</mainClass>
 						</manifest>
 					</archive>
 					<!--appendAssemblyId属性控制是否在生成的打包文件的文件名中包含assembly id-->

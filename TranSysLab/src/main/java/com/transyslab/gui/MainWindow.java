@@ -20,7 +20,7 @@ import com.jogamp.opengl.util.FPSAnimator;
 import com.transyslab.commons.renderer.*;
 import com.transyslab.commons.tools.SimulationClock;
 import com.transyslab.roadnetwork.Constants;
-import com.transyslab.simcore.AppSetup;
+import com.transyslab.app.AppSetup;
 import com.transyslab.simcore.SimulationEngine;
 import com.transyslab.simcore.mesots.MesoEngine;
 import com.transyslab.simcore.mlp.MLPEngine;

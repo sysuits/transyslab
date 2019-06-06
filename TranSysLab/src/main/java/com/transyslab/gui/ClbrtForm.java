@@ -18,8 +18,7 @@ package com.transyslab.gui;
 
 import com.transyslab.commons.tools.optimizer.DifferentialEvolution;
 import com.transyslab.experiments.OptToolBox;
-import com.transyslab.simcore.AppSetup;
-import org.apache.commons.configuration2.Configuration;
+import com.transyslab.app.AppSetup;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 
 import javax.swing.*;

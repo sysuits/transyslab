@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.transyslab.simcore;
+package com.transyslab.app;
 
 import com.transyslab.gui.MainWindow;
 import javax.swing.SwingUtilities;

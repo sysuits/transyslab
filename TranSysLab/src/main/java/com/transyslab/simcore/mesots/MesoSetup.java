@@ -17,11 +17,6 @@
 
 package com.transyslab.simcore.mesots;
 
-import java.util.List;
-
-import com.transyslab.commons.io.XmlParser;
-import com.transyslab.simcore.AppSetup;
-
 /**
  * 静态方法解析各类表格
  *

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.transyslab.simcore;
+package com.transyslab.app;
 
 import java.util.HashMap;
 import java.util.Map;
