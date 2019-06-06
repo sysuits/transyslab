@@ -163,9 +163,9 @@ public class MLPEngine extends SimulationEngine{
 		runProperties.put("statLinkIds",config.getString("statLinkIds"));
 		runProperties.put("statDetNames",config.getString("statDetNames"));
 
-		/*//repeatRun setting
+		//repeatRun setting
 		repeatTimes = Integer.parseInt(config.getString("repeatTimes"));
-		String[] parasStrArray = config.getString("obParas").split(",");
+		/*String[] parasStrArray = config.getString("obParas").split(",");
 		ob_paras = new double[parasStrArray.length];
 		for (int i = 0; i<parasStrArray.length; i++) {
 			ob_paras[i] = Double.parseDouble(parasStrArray[i]);
