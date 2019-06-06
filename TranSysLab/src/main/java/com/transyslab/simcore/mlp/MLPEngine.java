@@ -207,11 +207,13 @@ public class MLPEngine extends SimulationEngine{
 			mlpNetwork.renewSysRandSeed();
 			mlpNetwork.resetReleaseTime();
 			updateTime_ = now + ((MLPParameter) mlpNetwork.getSimParameter()).updateStepSize_;
-			String msg = "info: time " + now + " agent counts: " + mlpNetwork.veh_list.size();
-			System.out.println(msg);
-			broadcast(msg);
-			//update event
-			informEngineListeners(new EngineEvent(this, EngineEvent.UPDATE));
+			if (config.getBoolean("engineBroadcast")){
+				String msg = "info: time " + now + " agent counts: " + mlpNetwork.veh_list.size();
+				System.out.println(msg);
+				broadcast(msg);
+				//update event
+				informEngineListeners(new EngineEvent(this, EngineEvent.UPDATE));
+			}
 		}
 
 		if (now >= statTime_){
@@ -725,7 +727,7 @@ public class MLPEngine extends SimulationEngine{
 	 */
 	@Override
 	public void run() {
-		if (config.getBoolean("engineBroadcast")) {
+		if (config.getBoolean("engineBroadcast")||config.getBoolean("engineEndingBroadcast")) {
 			double count = 0.0;
 			long t0 = System.currentTimeMillis();
 
@@ -738,7 +740,8 @@ public class MLPEngine extends SimulationEngine{
 			}
 
 			String msg = "runtime: " + (System.currentTimeMillis()-t0) + " ms." + "\n" +
-					"sim rate: " + String.format("%.2f",count/((double)System.currentTimeMillis()-t0)) + " kHz.";
+					"sim rate: " + String.format("%.2f",count/((double)System.currentTimeMillis()-t0)) + " kHz." +
+					"sim run finished " + mod + "/" + repeatTimes;
 
 			System.out.println(msg);
 			engineEvent.setMsg(msg);
