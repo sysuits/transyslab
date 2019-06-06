@@ -62,6 +62,8 @@ public class MLPEngine extends SimulationEngine{
 	private HashMap<String, List<MacroCharacter>> simMap;
 	private int mod;//总计运行次数，在输出结束仿真信号时自增
 	private boolean stopSignal;
+	private long stepCount;
+	private long trackStep;
 
 	//引用路网结构
 	private MLPNetwork mlpNetwork;
@@ -151,6 +153,7 @@ public class MLPEngine extends SimulationEngine{
 		needRndETable = Boolean.parseBoolean(config.getString("needRndETable"));
 		rawRecOn = Boolean.parseBoolean(config.getString("rawRecOn"));
 		trackOn = Boolean.parseBoolean(config.getString("trackOn"));
+		trackStep = config.getInt("trackStep");
 		infoOn = Boolean.parseBoolean(config.getString("infoOn"));
 		statRecordOn = Boolean.parseBoolean(config.getString("statRecordOn"));
 		seedFixed = Boolean.parseBoolean(config.getString("seedFixed"));
@@ -299,7 +302,7 @@ public class MLPEngine extends SimulationEngine{
 		}
 		
 		//输出轨迹
-		if (trackOn) {
+		if (trackOn && Math.floorMod(stepCount,trackStep)==0) {
 			if (!mlpNetwork.veh_list.isEmpty() ) {//&& now - 2*Math.floor(now/2) < 0.001
 				int LV;
 				int FV;
@@ -333,6 +336,7 @@ public class MLPEngine extends SimulationEngine{
 //		System.out.println("DEBUG Sim world day: " + (now / 3600.0 / 24 + 1)  );
 
 		clock.advance(clock.getStepSize());
+		stepCount++;
         if (stopSignal) {
         	forceResetEngine();
         	stopSignal = false;
@@ -501,6 +505,7 @@ public class MLPEngine extends SimulationEngine{
 		LCDTime_ = now;
 		statTime_ = now + getSimParameter().statWarmUp + getSimParameter().statStepSize; //第一次统计时刻为：现在时间+warmUp+统计间隔
 		loadTime = now;
+		stepCount = 0;
 
 		//Network状态重设并准备发车表
 		if (!seedFixed)
