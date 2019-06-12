@@ -144,7 +144,7 @@ public class JOGLCanvas extends GLCanvas implements GLEventListener, KeyListener
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glLoadIdentity();
 		float widthHeightRatio = (float) getWidth() / (float) getHeight();
-		glu.gluPerspective(45, widthHeightRatio, 0.1, 10000);
+		glu.gluPerspective(45, widthHeightRatio, 0.1, 1000000);
 		// YYL end
 		gl.glClearDepth(1.0f); // set clear depth value to farthest
 		gl.glDisable(GL_DEPTH_TEST);
@@ -183,7 +183,7 @@ public class JOGLCanvas extends GLCanvas implements GLEventListener, KeyListener
 		// Setup perspective projection, with aspect ratio matches viewport
 		gl.glMatrixMode(GL_PROJECTION); // choose projection matrix
 		gl.glLoadIdentity(); // reset projection matrix
-		glu.gluPerspective(45.0, aspect, 0.1, 10000.0); // fovy, aspect, zNear,
+		glu.gluPerspective(45.0, aspect, 0.1, 1000000.0); // fovy, aspect, zNear,
 		// zFar
 	}
 
