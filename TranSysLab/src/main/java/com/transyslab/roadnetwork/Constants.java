@@ -46,7 +46,7 @@ public class Constants {
 	public final static float DEFAULT_VISIBILITY = 80; // meters
 	public final static float DEFAULT_BUSLC_VISIBILITY = 300; // meters
 	public final static float DEFAULT_SQUEEZE_FACTOR = 1.0f;
-	public static final double POINT_EPSILON = 0.1;
+	public static final double POINT_EPSILON = 1.0e-9;
 	public static final double BULGE_EPSILON = 1.0e-5;
 	public final static int LANE_CHANGE_RIGHT = 0x00000001;//说明：用于rules
 	public final static int LANE_CHANGE_LEFT = 0x00000002;//说明：用于rules

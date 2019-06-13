@@ -113,9 +113,9 @@ public class GeoPoint {
 				(Math.abs(this.locCoods[2] - p.locCoods[2]) < epsilon));
 	}
 	public boolean equal(final GeoPoint p) {
-		return ((Math.abs(this.locCoods[0] - p.locCoods[0]) < Constants.BULGE_EPSILON) &&
-				(Math.abs(this.locCoods[1] - p.locCoods[1]) < Constants.BULGE_EPSILON) &&
-				(Math.abs(this.locCoods[2] - p.locCoods[2]) < Constants.BULGE_EPSILON));
+		return ((Math.abs(this.locCoods[0] - p.locCoods[0]) < Constants.POINT_EPSILON) &&
+				(Math.abs(this.locCoods[1] - p.locCoods[1]) < Constants.POINT_EPSILON) &&
+				(Math.abs(this.locCoods[2] - p.locCoods[2]) < Constants.POINT_EPSILON));
 	}
 	/*
 	 * Compute the angle (in radian) of a line from this point to point 'pnt'.
