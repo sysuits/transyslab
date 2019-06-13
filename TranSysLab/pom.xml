@@ -116,6 +116,11 @@
 			<artifactId>jmetal-exec</artifactId>
 			<version>5.3</version>
 		</dependency>
+		<dependency>
+			<groupId>org.osgeo</groupId>
+			<artifactId>proj4j</artifactId>
+			<version>0.1.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

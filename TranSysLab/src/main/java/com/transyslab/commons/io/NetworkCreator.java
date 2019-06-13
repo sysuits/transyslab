@@ -16,6 +16,7 @@
 
 package com.transyslab.commons.io;
 
+import com.transyslab.commons.tools.CoordTransformUtils;
 import com.transyslab.roadnetwork.*;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.ArrayListHandler;
@@ -40,7 +41,7 @@ public class NetworkCreator {
         String sql;
         List<Object[]> result = null;
         // 读取节点数据, roadid为空的记录为交叉口节点
-        sql = "select nodeid, st_transform(geom,2362), type from topo_node ";
+        sql = "select nodeid, geom, type from topo_node ";
         // 按节点集筛选
         if (nodeIdList != null && !nodeIdList.equals(""))
             sql += "where nodeid in (" + nodeIdList + ")";
@@ -53,8 +54,8 @@ public class NetworkCreator {
             long nodeid = ((BigDecimal) row[0]).longValue();
             Point pos = ((PGgeometry) row[1]).getGeometry().getFirstPoint();
             int type = (Integer) row[2];
-            roadNetwork.createNode(nodeid, type, "N" + String.valueOf(nodeid),
-                    new GeoPoint(pos.getX(), pos.getY(), pos.getZ()));
+            GeoPoint tp = CoordTransformUtils.latlon2plane(new GeoPoint(pos.getX(),pos.getY(),pos.getZ()));
+            roadNetwork.createNode(nodeid, type, "N" + String.valueOf(nodeid), tp);
         }
         List<long[]> linkid = new ArrayList<>();
         if(hasDoubleCR) {
@@ -64,7 +65,7 @@ public class NetworkCreator {
             linkid = readDoubleCR(qr, sql);
         }
         // 读取单线数据
-        sql = "select gid, name, fnode, tnode from topo_centerroad ";
+        sql = "select id, name, fnode, tnode from topo_centerroad ";
         if (nodeIdList != null && !nodeIdList.equals(""))
             sql += "where fnode in (" + nodeIdList + ") and tnode in (" + nodeIdList + ")";
         // 中心线数据
@@ -84,7 +85,7 @@ public class NetworkCreator {
 
             Link newLink = roadNetwork.createLink(id, 1, linkName, upNodeId, dnNodeId);
             // 与当前中心线同向的子路段数据，topo_link -> SgmtInOutRecord
-            sql = "select id,st_transform(geom,2362) from topo_link " +
+            sql = "select id,geom from topo_link " +
                     "where roadid = " + String.valueOf(crid) + " and flowdir = 1";
             List<Segment> sgmt2check = readSegments(qr, sql, roadNetwork);
             // 按上下游顺序存储Segment
@@ -111,7 +112,7 @@ public class NetworkCreator {
             }
             Link newLinkRvs = roadNetwork.createLink(id, 1, linkName, dnNodeId, upNodeId);
             // 与反向中心线同向的子路段数据，topo_link -> SgmtInOutRecord
-            sql = "select id,st_transform(geom,2362) from topo_link " +
+            sql = "select id,geom from topo_link " +
                     "where roadid = " + String.valueOf(crid) + " and flowdir = -1";
             sgmt2check = readSegments(qr, sql, roadNetwork);
 
@@ -135,7 +136,7 @@ public class NetworkCreator {
         String laneIds = Arrays.toString(roadNetwork.getLanes().stream().mapToLong(e -> e.getId()).toArray());
         laneIds = laneIds.substring(1, laneIds.length() - 1);
         // 读取车道连接器数据
-        sql = "select connectorid, fromlaneid, tolaneid, st_transform(geom,2362),geom from topo_laneconnector " +
+        sql = "select connectorid, fromlaneid, tolaneid, geom from topo_laneconnector " +
                 "where fromlaneid in (" + laneIds + ") and tolaneid in (" + laneIds + ")";
         // 车道连接器数据 LaneConnector -> Connector
         readConnectors(qr, sql, roadNetwork);
@@ -153,7 +154,7 @@ public class NetworkCreator {
 
             Segment newSgmt = roadNetwork.createSegment(Long.parseLong((String)sgmtRow[0]), 60, 60, 0, ctrlPoint);
 
-            String sql2GetLanes = "select laneid, laneindex, width, direction, st_transform(geom,2362), geom from topo_lane " +
+            String sql2GetLanes = "select laneid, laneindex, width, direction, geom from topo_lane " +
                     "where segmentid = " + String.valueOf(newSgmt.getId());
             // 读取属于当前Segment的Lane
             List<Lane> lanesInSgmt = readLanes(qr, sql2GetLanes, roadNetwork);
@@ -215,13 +216,9 @@ public class NetworkCreator {
                 continue;
             // connector的几何属性
             PGgeometry geom = (PGgeometry) connRow[3];
-            LineString[] lines = ((MultiLineString) geom.getGeometry()).getLines();
-            List<GeoPoint> ctrlPoints = new ArrayList<>();
-            for (LineString line : lines) {
-                for (Point p : line.getPoints()) {
-                    ctrlPoints.add(new GeoPoint(p.getX(), p.getY(), p.getZ()));
-                }
-            }
+            if(geom == null || geom.getGeometry() == null)
+                continue;
+            List<GeoPoint> ctrlPoints = pgMultiLines2Points(geom,"Connector" + String.valueOf(connId)+" 平面坐标");
             Connector connt = roadNetwork.createConnector(connId, fLaneId, tLaneId, ctrlPoints);
             connectors.add(connt);
         }
@@ -285,12 +282,12 @@ public class NetworkCreator {
         List<GeoPoint> ctrlPoints = new ArrayList<>();
         for (LineString line : linesLane2) {
             for (Point p : line.getPoints()) {
-                GeoPoint gPoint = new GeoPoint(p.getX(), p.getY(), p.getZ());
+                GeoPoint gPoint = CoordTransformUtils.latlon2plane(new GeoPoint(p.getX(), p.getY(), p.getZ()));
                 long numOfSamePoints= ctrlPoints.stream().filter(pnt->pnt.equal(gPoint)).count();
                 if(numOfSamePoints>=1)
                     System.out.println("Warning: " + networkObjInfo + "存在" + numOfSamePoints + "个重复顶点");
                 else
-                    ctrlPoints.add(new GeoPoint(p.getX(), p.getY(), p.getZ()));
+                    ctrlPoints.add(gPoint);
             }
         }
         return ctrlPoints;
