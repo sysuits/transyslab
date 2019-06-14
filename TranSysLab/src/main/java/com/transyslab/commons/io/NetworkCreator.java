@@ -28,10 +28,8 @@ import org.postgis.Point;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class NetworkCreator {
@@ -64,14 +62,23 @@ public class NetworkCreator {
                 sql += "where fnode_ in (" + nodeIdList + ") and tnode_ in (" + nodeIdList + ")";
             linkid = readDoubleCR(qr, sql);
         }
-        // 读取单线数据
+        // 中心线数据
         sql = "select id, name, fnode, tnode from topo_centerroad ";
         if (nodeIdList != null && !nodeIdList.equals(""))
             sql += "where fnode in (" + nodeIdList + ") and tnode in (" + nodeIdList + ")";
-        // 中心线数据
-        result = qr.query(sql, new ArrayListHandler());
+        List<Object[]> crData = qr.query(sql, new ArrayListHandler());
+        // 有向子路段数据
+        sql = "select id,geom,roadid,flowdir from topo_link ";
+        List<Object[]> linkData = qr.query(sql, new ArrayListHandler());
+
+        // 车道数据
+        sql = "select laneid, laneindex, width, direction, geom,segmentid from topo_lane ";
+        List<Object[]> laneData = qr.query(sql, new ArrayListHandler());
+        // 车道连接器数据
+        sql = "select connectorid, fromlaneid, tolaneid, geom from topo_laneconnector ";
+        List<Object[]> connectorData = qr.query(sql, new ArrayListHandler());
         // 遍历中心线数据，topo_centerroad -> link
-        for (Object[] row : result) {
+        for (Object[] row : crData) {
             int crid = (int) row[0];
             String linkName = (String) row[1];
             long upNodeId = ((BigDecimal) row[2]).longValue();
@@ -83,11 +90,22 @@ public class NetworkCreator {
                     id = ids[0];
             }
 
+            LinkedHashMap<Long,List<Object[]>> sgmnt2LaneData = new LinkedHashMap();
+            // 正向，数字化方向一致
+            List<Object[]> sgmtPosFiltered;
+            if(linkData.get(0)[2] instanceof Integer)
+                sgmtPosFiltered = linkData.stream().filter(sgmt->(int)sgmt[2] == crid && (int)sgmt[3] == 1).collect(Collectors.toList());
+            else
+                sgmtPosFiltered = linkData.stream().filter(sgmt->(long)sgmt[2] == crid && (int)sgmt[3] == 1).collect(Collectors.toList());
+            // 筛选车道数据
+            for(Object[] sgmt:sgmtPosFiltered){
+                List<Object[]> laneFiltered= laneData.stream().filter(lane->(long)lane[5]==(long)sgmt[0]).collect(Collectors.toList());
+                sgmnt2LaneData.put((long)sgmt[0],laneFiltered);
+            }
             Link newLink = roadNetwork.createLink(id, 1, linkName, upNodeId, dnNodeId);
             // 与当前中心线同向的子路段数据，topo_link -> SgmtInOutRecord
-            sql = "select id,geom from topo_link " +
-                    "where roadid = " + String.valueOf(crid) + " and flowdir = 1";
-            List<Segment> sgmt2check = readSegments(qr, sql, roadNetwork);
+            List<Segment> sgmt2check = readSegments(roadNetwork,sgmtPosFiltered,sgmnt2LaneData);
+
             // 按上下游顺序存储Segment
             if (sgmt2check != null && sgmt2check.size() > 0) {
                 List<Segment> sortedSgmts = sortSegments(sgmt2check);
@@ -104,17 +122,26 @@ public class NetworkCreator {
                 roadNetwork.rmLastLink();
             }
             // TODO 有无反向路段的判断
-            id = -1*crid;// 单线反向
-            if(hasDoubleCR) {
-                long[] ids = linkid.stream().filter(ls->ls[1] == dnNodeId && ls[2] == upNodeId).findFirst().orElse(null);
-                if(ids!=null)
+            List<Object[]> sgmtNegFiltered;
+            if (linkData.get(0)[2] instanceof Long) {
+                sgmtNegFiltered = linkData.stream().filter(sgmt -> (long) sgmt[2] == crid && (int) sgmt[3] == -1).collect(Collectors.toList());
+            } else {
+                sgmtNegFiltered = linkData.stream().filter(sgmt -> (int) sgmt[2] == crid && (int) sgmt[3] == -1).collect(Collectors.toList());
+            }
+            for (Object[] sgmt : sgmtNegFiltered) {
+                List<Object[]> laneFiltered = laneData.stream().filter(lane -> (long) lane[5] == (long) sgmt[0]).collect(Collectors.toList());
+                sgmnt2LaneData.put((long) sgmt[0], laneFiltered);
+            }
+
+            id = -1 * crid;// 单线反向
+            if (hasDoubleCR) {
+                long[] ids = linkid.stream().filter(ls -> ls[1] == dnNodeId && ls[2] == upNodeId).findFirst().orElse(null);
+                if (ids != null)
                     id = ids[0];
             }
             Link newLinkRvs = roadNetwork.createLink(id, 1, linkName, dnNodeId, upNodeId);
             // 与反向中心线同向的子路段数据，topo_link -> SgmtInOutRecord
-            sql = "select id,geom from topo_link " +
-                    "where roadid = " + String.valueOf(crid) + " and flowdir = -1";
-            sgmt2check = readSegments(qr, sql, roadNetwork);
+            sgmt2check = readSegments(roadNetwork, sgmtNegFiltered, sgmnt2LaneData);
 
             if (sgmt2check != null && sgmt2check.size() > 0) {
                 List<Segment> sortedSgmts = sortSegments(sgmt2check);
@@ -133,31 +160,26 @@ public class NetworkCreator {
 
         }
         // 目标区域的所有车道编号集，筛选出相关的车道连接器
-        String laneIds = Arrays.toString(roadNetwork.getLanes().stream().mapToLong(e -> e.getId()).toArray());
-        laneIds = laneIds.substring(1, laneIds.length() - 1);
-        // 读取车道连接器数据
-        sql = "select connectorid, fromlaneid, tolaneid, geom from topo_laneconnector " +
-                "where fromlaneid in (" + laneIds + ") and tolaneid in (" + laneIds + ")";
+        List<Long> laneIds = roadNetwork.getLanes().stream().mapToLong(e -> e.getId()).boxed().collect(Collectors.toList());
         // 车道连接器数据 LaneConnector -> Connector
-        readConnectors(qr, sql, roadNetwork);
-        //JdbcUtils.close();
+        List<Object[]> cnntFiltered = connectorData.stream().filter(cnnt->laneIds.contains(cnnt[1]) && laneIds.contains(cnnt[2])).collect(Collectors.toList());
+        readConnectors(roadNetwork,cnntFiltered);
     }
 
-    public static List<Segment> readSegments(QueryRunner qr, String sql, RoadNetwork roadNetwork) throws SQLException {
-        List<Object[]> segmentRslt = qr.query(sql, new ArrayListHandler());
+    public static List<Segment> readSegments(RoadNetwork roadNetwork,List<Object[]> filteredSgmtData,LinkedHashMap<Long,List<Object[]>> sgmtId2Lanes)  {
+
         List<Segment> sgmt2check = new ArrayList<>();
         List<Lane> addLanes = new ArrayList<>();
 
-        for (Object[] sgmtRow : segmentRslt) {
+        for (Object[] sgmtRow : filteredSgmtData) {
             PGgeometry geom = (PGgeometry) sgmtRow[1];
             List<GeoPoint> ctrlPoint = pgMultiLines2Points(geom,"Segment"+String.valueOf(sgmtRow[0])+" 平面坐标");
 
             Segment newSgmt = roadNetwork.createSegment(Long.parseLong((String)sgmtRow[0]), 60, 60, 0, ctrlPoint);
 
-            String sql2GetLanes = "select laneid, laneindex, width, direction, geom from topo_lane " +
-                    "where segmentid = " + String.valueOf(newSgmt.getId());
+            long sgmtId = newSgmt.getId();
             // 读取属于当前Segment的Lane
-            List<Lane> lanesInSgmt = readLanes(qr, sql2GetLanes, roadNetwork);
+            List<Lane> lanesInSgmt = readLanes(roadNetwork,sgmtId2Lanes.get(sgmtId));
             addLanes.addAll(lanesInSgmt);
             sgmt2check.add(newSgmt);
             if (lanesInSgmt.size() > 0) {
@@ -176,13 +198,10 @@ public class NetworkCreator {
         return sgmt2check;
     }
 
-    public static List<Lane> readLanes(QueryRunner qr, String sql, RoadNetwork roadNetwork) throws SQLException {
-        // 读取Segment的Lane
-
-        List<Object[]> laneRslt = qr.query(sql, new ArrayListHandler());
+    public static List<Lane> readLanes(RoadNetwork roadNetwork,List<Object[]> laneFiltered){
         List<Lane> lanesInSgmt = new ArrayList<>();
         // 遍历Lane数据
-        for (Object[] laneRow : laneRslt) {
+        for (Object[] laneRow : laneFiltered) {
             long laneid = ((Long) laneRow[0]).longValue();
             int orderNum = ((Integer) laneRow[1]).intValue();
             double width;
@@ -202,11 +221,10 @@ public class NetworkCreator {
         return lanesInSgmt;
     }
 
-    public static List<Connector> readConnectors(QueryRunner qr, String sql, RoadNetwork roadNetwork) throws SQLException {
+    public static List<Connector> readConnectors(RoadNetwork roadNetwork,List<Object[]> cnntFiltered){
         List<Connector> connectors = new ArrayList<>();
-        List<Object[]> result = qr.query(sql, new ArrayListHandler());
         // 遍历车道连接器 LaneConnector -> Connector
-        for (Object[] connRow : result) {
+        for (Object[] connRow : cnntFiltered) {
             long connId = ((BigDecimal) connRow[0]).longValue();
             long fLaneId = ((BigDecimal) connRow[1]).longValue();
             long tLaneId = ((BigDecimal) connRow[2]).longValue();
