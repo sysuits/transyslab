@@ -188,6 +188,7 @@ public class MLPParameter extends Parameter {
 	//³µ¶ÓÅÐ¶Ïº¯Êý
 	public static boolean inPlatoon(double headway) {
 		//calibrated paras
+		double theta = 0.7075;
 		double alpha = 3.7515;
 		double lamda0 = 1.6480;
 		double lamda1 = 0.5086;
@@ -196,7 +197,7 @@ public class MLPParameter extends Parameter {
 		double gammaFunVal = Math.exp(Gamma.logGamma(alpha));
 		double g0 = Math.pow(lamda0,alpha) / gammaFunVal * Math.pow(headway, alpha-1) * Math.exp(-lamda0*headway);
 		double g1 = Math.pow(lamda1,alpha) / gammaFunVal * Math.pow(headway, alpha-1) * Math.exp(-lamda1*headway);
-		return (g0 > g1);
+		return (theta*g0 > (1.0-theta)*g1);
 	}
 
 	public double getLCSensitivity() {
