@@ -528,6 +528,7 @@ public class MLPLane extends Lane implements Comparator<MLPLane>{
 
 			SignalArrow arrow = new SignalArrow(0,0,fp,ep,dir);
 			arrow.setReferConn(conn);
+			conn.setTuringDir(dir);
 
 			this.signalArrows.add(arrow);
 		}

@@ -21,20 +21,17 @@ import com.transyslab.roadnetwork.Constants;
 import com.transyslab.roadnetwork.Node;
 import com.transyslab.roadnetwork.RoadNetwork;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class MLPNode extends Node{
 	private LinkedList<MLPVehicle> statedVehs;
 	protected double passSpd = 40.0/3.6;
 	public int stopCount;
-	protected List<MLPConnector> lcList;
+	private HashMap<String, List<MLPConnector>> turningMap;
 	public MLPNode() {
 		statedVehs = new LinkedList<>();
 		stopCount = 0;
-		lcList = new ArrayList<>();
+		turningMap = new HashMap<>();
 	}
 	public int serve(MLPVehicle veh) {
 		MLPLane lane_ = veh.lane;
@@ -299,8 +296,25 @@ public class MLPNode extends Node{
 		}
 		return this;
 	}
+
 	public void addLC(MLPConnector lc) {
-		lcList.add(lc);
+		List<MLPConnector> conns = findTurningConn(lc.upLinkID(),lc.dnLinkID());
+		if (conns==null){
+			conns = new ArrayList<>();
+			turningMap.put(lc.upLinkID()+"_"+lc.dnLinkID(),conns);
+		}
+		conns.add(lc);
+	}
+
+	public List<MLPConnector> findTurningConn(Long fLinkID, Long tLinkID){
+		return turningMap.get(fLinkID+"_"+tLinkID);
+	}
+
+	public String findTurningString(Long fLinkID, Long tLinkID){
+		List<MLPConnector> conns = findTurningConn(fLinkID,tLinkID);
+		if (conns==null)
+			return "?";
+		else return conns.get(0).getTurningDir();
 	}
 
 	public boolean dnLinkExist(MLPLink dnLink){

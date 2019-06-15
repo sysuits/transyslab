@@ -32,6 +32,7 @@ public class MLPConnector extends Connector {
     private double length;
     public MLPLane upLane;
     public MLPLane dnLane;
+    protected String turingDir;
 
     public MLPConnector(long id, List<GeoPoint> shapePoints, MLPLane upLane, MLPLane dnLane) {
         super(id, shapePoints, upLane.getId(), dnLane.getId());
@@ -178,5 +179,13 @@ public class MLPConnector extends Connector {
         if (vehsOnConn.size()<=0)
             return getLength();
         return getLength() - vehsOnConn.getLast().getDistance() - vehsOnConn.getLast().getLength();
+    }
+
+    public void setTuringDir(String s){
+        this.turingDir = s;
+    }
+
+    public String getTurningDir(){
+        return this.turingDir;
     }
 }

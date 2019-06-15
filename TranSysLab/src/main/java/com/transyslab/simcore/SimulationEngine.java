@@ -18,6 +18,8 @@ package com.transyslab.simcore;
 
 import com.transyslab.commons.io.CSVUtils;
 import com.transyslab.roadnetwork.*;
+import com.transyslab.simcore.mlp.MLPEngine;
+import com.transyslab.simcore.mlp.MLPNode;
 import com.transyslab.simcore.mlp.MacroCharacter;
 import org.apache.commons.csv.CSVRecord;
 
@@ -138,6 +140,9 @@ public abstract class SimulationEngine {
 				LocalTime stime = LocalTime.parse(results.get(i).get("FTIME"),DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss"));
 				LocalTime etime = LocalTime.parse(results.get(i).get("TTIME"),DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss"));
 				String turnInfo = results.get(i).get("TURN");
+				if ((turnInfo==null || turnInfo.equals("")) && this instanceof MLPEngine){
+					turnInfo = ((MLPNode)sNode).findTurningString((long)flid,(long)tlid);
+				}
 				double ft = stime.toSecondOfDay();
 				double tt = etime.toSecondOfDay();
 				if (sNode == null || sNode.getId() != nodeId) {
