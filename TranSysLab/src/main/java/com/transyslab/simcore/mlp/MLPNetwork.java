@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import com.transyslab.commons.io.*;
 import com.transyslab.commons.renderer.AnimationFrame;
 import com.transyslab.commons.renderer.FrameQueue;
+import com.transyslab.commons.tools.SyncCounter;
 import com.transyslab.roadnetwork.*;
 import org.apache.commons.csv.CSVRecord;
 import org.jgrapht.GraphPath;
@@ -163,8 +164,8 @@ public class MLPNetwork extends RoadNetwork {
 			((MLPLane) l).checkConectedLane();
 		}
 
-		int li = 0;
-		for (Link l: links){
+		SyncCounter counter = new SyncCounter();
+		links.parallelStream().forEach(l->{
 			//预留
 			((MLPLink) l).checkConnectivity();
 			//networkGraph
@@ -191,11 +192,11 @@ public class MLPNetwork extends RoadNetwork {
 			//将jointLane信息装入Link中
 			((MLPLink) l).addLnPosInfo();
 			((MLPLink) l).organizeTurnableDnLinks();
-			li += 1;
-			String msg = "info: link " + l.getId() + " constructed " + li + " / " + links.size();
+			counter.update();
+			String msg = "info: link " + l.getId() + " constructed " + counter.currentNum() + " / " + links.size();
 			System.out.println(msg);
 			broadcast(msg);
-		}
+		});
 	}
 
 	public void buildEmitTable(boolean needRET, String odFileDir, String emitFileDir){
