@@ -49,7 +49,7 @@ public class NetworkCreator {
         result = qr.query(sql, new ArrayListHandler());
         // 遍历，node -> node
         for (Object[] row : result) {
-            long nodeid = ((BigDecimal) row[0]).longValue();
+            long nodeid = obj2Long(row[0]);
             Point pos = ((PGgeometry) row[1]).getGeometry().getFirstPoint();
             int type = (Integer) row[2];
             GeoPoint tp = CoordTransformUtils.latlon2plane(new GeoPoint(pos.getX(),pos.getY(),pos.getZ()));
@@ -175,7 +175,7 @@ public class NetworkCreator {
             PGgeometry geom = (PGgeometry) sgmtRow[1];
             List<GeoPoint> ctrlPoint = pgMultiLines2Points(geom,"Segment"+String.valueOf(sgmtRow[0])+" 平面坐标");
 
-            Segment newSgmt = roadNetwork.createSegment(Long.parseLong((String)sgmtRow[0]), 60, 60, 0, ctrlPoint);
+            Segment newSgmt = roadNetwork.createSegment(obj2Long(sgmtRow[0]), 60, 60, 0, ctrlPoint);
 
             long sgmtId = newSgmt.getId();
             // 读取属于当前Segment的Lane
@@ -310,5 +310,16 @@ public class NetworkCreator {
         }
         return ctrlPoints;
 
+    }
+
+    private static long obj2Long(Object obj){
+        if (obj instanceof BigDecimal)
+            return ((BigDecimal) obj).longValue();
+        if (obj instanceof Long)
+            return ((Long) obj).longValue();
+        if (obj instanceof String)
+            return Long.parseLong((String)obj);
+        System.err.println("unsolved data type of object" + obj.toString());
+        return Long.MAX_VALUE;
     }
 }
