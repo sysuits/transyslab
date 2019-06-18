@@ -145,8 +145,8 @@ public class MLPEngine extends SimulationEngine{
 		//time setting
 //		timeStart = Double.parseDouble(config.getString("timeStart"));
 //		timeEnd = Double.parseDouble(config.getString("timeEnd"));
-		timeStart = LocalTime.parse(config.getString("timeStart"),DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss")).toSecondOfDay();
-		timeEnd = LocalTime.parse(config.getString("timeEnd"),DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss")).toSecondOfDay();
+		timeStart = LocalTime.parse(config.getString("timeStart"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toSecondOfDay();
+		timeEnd = LocalTime.parse(config.getString("timeEnd"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toSecondOfDay();
 		timeStep = Double.parseDouble(config.getString("timeStep"));
 
 		//the value will be false if config.getString() returns null
