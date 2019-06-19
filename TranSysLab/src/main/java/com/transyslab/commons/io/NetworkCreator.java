@@ -79,10 +79,10 @@ public class NetworkCreator {
         List<Object[]> connectorData = qr.query(sql, new ArrayListHandler());
         // 遍历中心线数据，topo_centerroad -> link
         for (Object[] row : crData) {
-            int crid = (int) row[0];
+            long crid = obj2Long(row[0]);
             String linkName = (String) row[1];
-            long upNodeId = ((BigDecimal) row[2]).longValue();
-            long dnNodeId = ((BigDecimal) row[3]).longValue();
+            long upNodeId = obj2Long(row[2]);
+            long dnNodeId = obj2Long(row[3]);
             long id = crid;
             if(hasDoubleCR) {
                 long[] ids = linkid.stream().filter(ls->ls[1] == upNodeId && ls[2] == dnNodeId).findFirst().orElse(null);
@@ -93,14 +93,11 @@ public class NetworkCreator {
             LinkedHashMap<Long,List<Object[]>> sgmnt2LaneData = new LinkedHashMap();
             // 正向，数字化方向一致
             List<Object[]> sgmtPosFiltered;
-            if(linkData.get(0)[2] instanceof Integer)
-                sgmtPosFiltered = linkData.stream().filter(sgmt->(int)sgmt[2] == crid && (int)sgmt[3] == 1).collect(Collectors.toList());
-            else
-                sgmtPosFiltered = linkData.stream().filter(sgmt->(long)sgmt[2] == crid && (int)sgmt[3] == 1).collect(Collectors.toList());
+            sgmtPosFiltered = linkData.stream().filter(sgmt->obj2Long(sgmt[2]) == crid && obj2Long(sgmt[3]) == 1).collect(Collectors.toList());
             // 筛选车道数据
             for(Object[] sgmt:sgmtPosFiltered){
-                List<Object[]> laneFiltered= laneData.stream().filter(lane->(long)lane[5]==(long)sgmt[0]).collect(Collectors.toList());
-                sgmnt2LaneData.put((long)sgmt[0],laneFiltered);
+                List<Object[]> laneFiltered= laneData.stream().filter(lane->obj2Long(lane[5])==obj2Long(sgmt[0])).collect(Collectors.toList());
+                sgmnt2LaneData.put(obj2Long(sgmt[0]),laneFiltered);
             }
             Link newLink = roadNetwork.createLink(id, 1, linkName, upNodeId, dnNodeId);
             // 与当前中心线同向的子路段数据，topo_link -> SgmtInOutRecord
@@ -123,14 +120,10 @@ public class NetworkCreator {
             }
             // TODO 有无反向路段的判断
             List<Object[]> sgmtNegFiltered;
-            if (linkData.get(0)[2] instanceof Long) {
-                sgmtNegFiltered = linkData.stream().filter(sgmt -> (long) sgmt[2] == crid && (int) sgmt[3] == -1).collect(Collectors.toList());
-            } else {
-                sgmtNegFiltered = linkData.stream().filter(sgmt -> (int) sgmt[2] == crid && (int) sgmt[3] == -1).collect(Collectors.toList());
-            }
+            sgmtNegFiltered = linkData.stream().filter(sgmt -> obj2Long(sgmt[2]) == crid && obj2Long(sgmt[3]) == -1).collect(Collectors.toList());
             for (Object[] sgmt : sgmtNegFiltered) {
-                List<Object[]> laneFiltered = laneData.stream().filter(lane -> (long) lane[5] == (long) sgmt[0]).collect(Collectors.toList());
-                sgmnt2LaneData.put((long) sgmt[0], laneFiltered);
+                List<Object[]> laneFiltered = laneData.stream().filter(lane -> obj2Long(lane[5]) == obj2Long(sgmt[0])).collect(Collectors.toList());
+                sgmnt2LaneData.put(obj2Long(sgmt[0]), laneFiltered);
             }
 
             id = -1 * crid;// 单线反向
@@ -162,8 +155,8 @@ public class NetworkCreator {
         // 目标区域的所有车道编号集，筛选出相关的车道连接器
         List<Long> laneIds = roadNetwork.getLanes().stream().mapToLong(e -> e.getId()).boxed().collect(Collectors.toList());
         // 车道连接器数据 LaneConnector -> Connector
-        List<Object[]> cnntFiltered = connectorData.stream().filter(cnnt->laneIds.contains(cnnt[1]) && laneIds.contains(cnnt[2])).collect(Collectors.toList());
-        readConnectors(roadNetwork,cnntFiltered);
+
+        readConnectors(roadNetwork,connectorData,laneIds);
     }
 
     public static List<Segment> readSegments(RoadNetwork roadNetwork,List<Object[]> filteredSgmtData,LinkedHashMap<Long,List<Object[]>> sgmtId2Lanes)  {
@@ -208,7 +201,7 @@ public class NetworkCreator {
             if (laneRow[2] == null)
                 width = 3.75;
             else
-                width = ((Double) laneRow[2]).doubleValue();
+                width = obj2Double(laneRow[2]);
             String direction = (String) laneRow[3];
             // lane的几何属性,平面坐标
             PGgeometry geomLane = (PGgeometry) laneRow[4];
@@ -221,13 +214,15 @@ public class NetworkCreator {
         return lanesInSgmt;
     }
 
-    public static List<Connector> readConnectors(RoadNetwork roadNetwork,List<Object[]> cnntFiltered){
+    public static List<Connector> readConnectors(RoadNetwork roadNetwork,List<Object[]> connectorData,List<Long> laneIds){
         List<Connector> connectors = new ArrayList<>();
         // 遍历车道连接器 LaneConnector -> Connector
-        for (Object[] connRow : cnntFiltered) {
-            long connId = ((BigDecimal) connRow[0]).longValue();
-            long fLaneId = ((BigDecimal) connRow[1]).longValue();
-            long tLaneId = ((BigDecimal) connRow[2]).longValue();
+        for (Object[] connRow : connectorData) {
+            long connId = obj2Long(connRow[0]);
+            long fLaneId = obj2Long(connRow[1]);
+            long tLaneId = obj2Long(connRow[2]);
+            if (!laneIds.contains(fLaneId)||!laneIds.contains(tLaneId))
+                continue;
             // 临时改造 去除横向车道连接器 wym
             if (roadNetwork.findLane(fLaneId).getSegment().getId() ==
                     roadNetwork.findLane(tLaneId).getSegment().getId())
@@ -319,7 +314,24 @@ public class NetworkCreator {
             return ((Long) obj).longValue();
         if (obj instanceof String)
             return Long.parseLong((String)obj);
-        System.err.println("unsolved data type of object" + obj.toString());
+        if (obj instanceof Integer)
+            return (int) obj;
+        System.err.println("unsolved data type of object " + obj.toString());
+        return Long.MAX_VALUE;
+    }
+
+    private static double obj2Double(Object obj){
+        if (obj instanceof BigDecimal)
+            return ((BigDecimal) obj).doubleValue();
+        if (obj instanceof Long)
+            return ((Long) obj).doubleValue();
+        if (obj instanceof String)
+            return Double.parseDouble((String)obj);
+        if (obj instanceof Double)
+            return (double) obj;
+        if (obj instanceof Integer)
+            return (int) obj;
+        System.err.println("unsolved data type of object " + obj.toString());
         return Long.MAX_VALUE;
     }
 }
