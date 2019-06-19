@@ -549,7 +549,8 @@ public class MLPVehicle extends Vehicle{
 
 	public MLPVehicle getLCBlockingVeh(){
 		if (
-				virtualType == 0 && buffer == 0 //换道资格
+				conn==null //not on node
+				&& virtualType == 0 && buffer == 0 //换道资格
 				&& getCurrentSpeed()==0.0 // 停车等待
 				&& getLane()!=null && getSegment().isEndSeg() //道路末端
 				&& diMap.get(getLane())!=0 && calMLC()>0.99 //此道不通，强制换道紧急性强
