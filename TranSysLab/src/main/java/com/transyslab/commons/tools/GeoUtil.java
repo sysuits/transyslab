@@ -411,4 +411,29 @@ public class GeoUtil {
 		}
 		return false;
 	}
+	public static double calcDirAngle(GeoPoint fPoint, GeoPoint tPoint){
+		double dirX = tPoint.getLocationX() - fPoint.getLocationX();
+		double dirY = tPoint.getLocationY() - fPoint.getLocationY();
+		double angle;
+		if(dirX>0) {
+			if (dirY >= 0)
+				angle = (Math.PI / 2 - Math.atan(Math.abs(dirY) / Math.abs(dirX))) * 180 / Math.PI;
+			else
+				angle = (Math.PI / 2 + Math.atan(Math.abs(dirY) / Math.abs(dirX))) * 180 / Math.PI;
+		}
+		else if (dirX <0){
+			if(dirY>=0)
+				angle = (Math.PI/2*3 + Math.atan(Math.abs(dirY)/Math.abs(dirX)))*180/Math.PI;
+			else
+				angle = (Math.PI/2*3 - Math.atan(Math.abs(dirY)/Math.abs(dirX)))*180/Math.PI;
+		}
+
+		else{
+			if(dirY>=0)
+				angle = 0;
+			else
+				angle = 180;
+		}
+		return angle;
+	}
 }
