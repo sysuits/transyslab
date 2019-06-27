@@ -339,7 +339,6 @@ public class MLPEngine extends SimulationEngine{
 		stepCount++;
         if (stopSignal) {
         	forceResetEngine();
-        	stopSignal = false;
         	return (state_ = Constants.STATE_QUIT);
 		}
 		if (now > clock.getStopTime() + epsilon) {
@@ -498,6 +497,7 @@ public class MLPEngine extends SimulationEngine{
 	 * 注意：若要设置种子、发车等于路网状态重设过程相关的参数，需要在执行此函数前进行。
 	 */
 	private void resetBeforeSimLoop() {
+		stopSignal = false;
 		SimulationClock clock = mlpNetwork.getSimClock();
 		clock.resetTimer();
 		double now = clock.getCurrentTime();
