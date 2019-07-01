@@ -498,4 +498,12 @@ public class Lane implements NetworkObject,Comparable<Lane> {
 		else
 			return 0;
 	}
+
+	public int getOrderNum(){
+		return this.orderNum;
+	}
+
+	public String getDirection(){
+		return this.direction;
+	}
 }

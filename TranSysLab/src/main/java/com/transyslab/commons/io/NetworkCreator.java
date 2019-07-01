@@ -24,8 +24,16 @@ import org.postgis.LineString;
 import org.postgis.MultiLineString;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.sql.DataSource;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.*;
@@ -157,6 +165,96 @@ public class NetworkCreator {
         // 车道连接器数据 LaneConnector -> Connector
 
         readConnectors(roadNetwork,connectorData,laneIds);
+    }
+
+    public static void readDataFromXML(String fileName, RoadNetwork roadNetwork, String nodeIdList){
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        Document dom;
+        try {
+            DocumentBuilder builder = dbf.newDocumentBuilder();
+            dom = builder.parse(new File(fileName));
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("failed parsing dom");
+            return;
+        }
+        //todo: node filter
+        NodeList nodeList = dom.getElementsByTagName("N");
+        //parse nodes
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Element nodeEle = (Element) nodeList.item(i);
+            roadNetwork.createNode(
+                    Long.valueOf(nodeEle.getAttribute("id")),
+                    Integer.valueOf(nodeEle.getAttribute("type")),
+                    nodeEle.getAttribute("name"),
+                    GeoPoint.parse(nodeEle.getAttribute("geoString")));
+        }
+        //parse links
+        NodeList linkList = dom.getElementsByTagName("L");
+        for (int i = 0; i < linkList.getLength(); i++) {
+            Element linkEle = (Element) linkList.item(i);
+            Link newLink = roadNetwork.createLink(
+                    Long.valueOf(linkEle.getAttribute("id")),
+                    Integer.valueOf(linkEle.getAttribute("type")),
+                    linkEle.getAttribute("name"),
+                    Long.valueOf(linkEle.getAttribute("upNode")),
+                    Long.valueOf(linkEle.getAttribute("dnNode")));
+            //parse segments in a link
+            List<Segment> segments = new ArrayList<>();
+            Node segmentNode = linkEle.getFirstChild();
+            while (segmentNode!=null){
+                if (segmentNode.getNodeName().equals("S")){
+                    Element segEle = (Element) segmentNode;
+                    Segment newSeg = roadNetwork.createSegment(
+                            Long.parseLong(segEle.getAttribute("id")),
+                            Integer.parseInt(segEle.getAttribute("speedLimit")),
+                            Double.parseDouble(segEle.getAttribute("freeSpeed")),
+                            Double.parseDouble(segEle.getAttribute("gradient")),
+                            GeoPoints.parse(
+                                    segEle.getAttribute("ctrlPoints")
+                            )
+                    );
+                    //parse lanes in a segment
+                    List<Lane> lanes = new ArrayList<>();
+                    Node laneNode = segmentNode.getFirstChild();
+                    while (laneNode!=null){
+                        if (laneNode.getNodeName().equals("LA")){
+                            Element lnEle = (Element) laneNode;
+                            lanes.add(
+                                    roadNetwork.createLane(
+                                            Long.parseLong(lnEle.getAttribute("laneId")),
+                                            Integer.parseInt(lnEle.getAttribute("rules")),
+                                            Integer.parseInt(lnEle.getAttribute("orderNum")),
+                                            Double.parseDouble(lnEle.getAttribute("width")),
+                                            lnEle.getAttribute("direction"),
+                                            GeoPoints.parse(
+                                                    lnEle.getAttribute("ctrlPoints")
+                                            ))
+                            );
+                        }
+                        laneNode = laneNode.getNextSibling();
+                    }
+                    newSeg.setLanes(lanes);
+                    segments.add(newSeg);
+                }
+                segmentNode = segmentNode.getNextSibling();
+            }
+            newLink.setSegments(segments);
+        }
+        //parse lane connectors
+        NodeList connList = dom.getElementsByTagName("LC");
+        for (int i = 0; i < connList.getLength(); i++) {
+            Element connEle = (Element) connList.item(i);
+            Long fLaneId = Long.parseLong(connEle.getAttribute("fLaneId"));
+            Long tLaneId = Long.parseLong(connEle.getAttribute("tLaneId"));
+            // 临时改造 去除横向车道连接器 wym
+            if (roadNetwork.findLane(fLaneId).getSegment().getId() ==
+                    roadNetwork.findLane(tLaneId).getSegment().getId())
+                continue;
+            Long connectorId = Long.parseLong(connEle.getAttribute("connectorId"));
+            List<GeoPoint> ctlPs = GeoPoints.parse(connEle.getAttribute("ctrlPoints"));
+            roadNetwork.createConnector(connectorId,fLaneId,tLaneId,ctlPs);
+        }
     }
 
     public static List<Segment> readSegments(RoadNetwork roadNetwork,List<Object[]> filteredSgmtData,LinkedHashMap<Long,List<Object[]>> sgmtId2Lanes)  {

@@ -398,9 +398,15 @@ public class MLPEngine extends SimulationEngine{
 		// 读取路网xml
 		//XmlParser.parseNetwork(mlpNetwork, runProperties.get("roadNetworkPath"));
 		try {
-			// 从数据库读入全网数据
 			String nodeList = runProperties.get("nodes2Construct");
-			NetworkCreator.readDataFromDB(mlpNetwork, nodeList, false);
+			if (config.getBoolean("RN_FROM_DB")){
+				// 从数据库读入全网数据
+				NetworkCreator.readDataFromDB(mlpNetwork, nodeList, config.getBoolean("doubleLine"));
+			}
+			else {
+				NetworkCreator.readDataFromXML(rootDir + config.getString("roadNetworkPath"),mlpNetwork,nodeList);
+			}
+
 			// 读入路网数据后组织路网不同要素的关系
 			mlpNetwork.calcDbStaticInfo();
 //			// 读入路网数据后组织路网不同要素的关系

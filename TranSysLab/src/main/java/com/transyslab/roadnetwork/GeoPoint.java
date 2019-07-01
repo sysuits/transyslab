@@ -17,6 +17,8 @@
 
 package com.transyslab.roadnetwork;
 
+import java.util.Arrays;
+
 /**
  */
 public class GeoPoint {
@@ -173,4 +175,17 @@ public class GeoPoint {
 		return this.getLocationX()*b.getLocationY() - this.getLocationY()*b.getLocationX();
 	}
 
+	@Override
+	public String toString() {
+		return Arrays.toString(locCoods);
+	}
+
+	public static GeoPoint parse(String arrayStr){
+		String[] coords = arrayStr.replace("[","")
+				.replace("]","")
+				.split(",");
+		return new GeoPoint(Double.parseDouble(coords[0]),
+				Double.parseDouble(coords[1]),
+				Double.parseDouble(coords[2]));
+	}
 }

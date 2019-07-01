@@ -952,4 +952,16 @@ public abstract class RoadNetwork extends SimpleDirectedWeightedGraph<Node, Link
 		loadingCompleted=true;
 	}
 
+	public List<Node> getNodes(){
+		return this.nodes;
+	}
+
+	public List<Link> getLinks(){
+		return this.links;
+	}
+
+	public List<Connector> getConnectors(){
+		return this.connectors;
+	}
+
 }
