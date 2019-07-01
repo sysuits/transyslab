@@ -574,7 +574,7 @@ public class MLPNetwork extends RoadNetwork {
 	}
 
 	@Override
-	public ODPair findODPair(Node oriNode, Node desNode) {
+	public synchronized ODPair findODPair(Node oriNode, Node desNode) {
 		ODPair thePair = super.findODPair(oriNode, desNode);
 		if (thePair == null) {
 			// todo 应加入所有可行路径，非最短路

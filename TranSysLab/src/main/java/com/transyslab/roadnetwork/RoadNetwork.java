@@ -263,7 +263,7 @@ public abstract class RoadNetwork extends SimpleDirectedWeightedGraph<Node, Link
 		return odPairs.stream().filter(odPair -> odPair.oriNode.getId() == oriId && odPair.desNode.getId() == desId)
 				.findFirst().orElse(null);
 	}
-	public ODPair findODPair(Node oriNode, Node desNode){
+	public synchronized ODPair findODPair(Node oriNode, Node desNode){
 		return odPairs.stream().filter(p -> p.oriNode == oriNode && p.desNode == desNode).findFirst().orElse(null);
 	}
 
