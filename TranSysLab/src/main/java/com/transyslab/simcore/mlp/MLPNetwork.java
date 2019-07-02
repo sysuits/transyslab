@@ -42,6 +42,7 @@ public class MLPNetwork extends RoadNetwork {
 	BufferedReader bReader;
 //	public List<MLPLoop> sensors;
 	private MLPEngine mlpEngine;
+	private AllDirectedPaths allDirectedPaths;
 
 	//引擎输出变量
 	protected HashMap<MLPLink, List<MacroCharacter>> linkStatMap;
@@ -169,8 +170,7 @@ public class MLPNetwork extends RoadNetwork {
 			//预留
 			((MLPLink) l).checkConnectivity();
 			//networkGraph
-			this.addEdge(l.getUpNode(),l.getDnNode(),l);
-			this.setEdgeWeight(l,Double.POSITIVE_INFINITY);
+			addEdgeInRNGrapth((MLPLink)l);
 			//组织laneGraph
 			segments.forEach(segment -> {
 				lanes.forEach(lane -> {
@@ -197,6 +197,13 @@ public class MLPNetwork extends RoadNetwork {
 			System.out.println(msg);
 			broadcast(msg);
 		});
+		allDirectedPaths = new AllDirectedPaths(this);
+	}
+
+	private synchronized boolean addEdgeInRNGrapth(MLPLink l){
+		boolean ans = this.addEdge(l.getUpNode(),l.getDnNode(),l);
+		this.setEdgeWeight(l,Double.POSITIVE_INFINITY);
+		return ans;
 	}
 
 	public void buildEmitTable(boolean needRET, String odFileDir, String emitFileDir){
@@ -580,7 +587,7 @@ public class MLPNetwork extends RoadNetwork {
 			// todo 应加入所有可行路径，非最短路
 //			GraphPath<Node, Link> gpath = DijkstraShortestPath.findPathBetween(this, oriNode, desNode);
 			//临时修改 wym
-			List<GraphPath<Node, Link>> gpaths = (List<GraphPath<Node, Link>>) new AllDirectedPaths(this).getAllPaths(oriNode,desNode,true,Path.MAX_PATH_LENGTH);
+			List<GraphPath<Node, Link>> gpaths = (List<GraphPath<Node, Link>>) allDirectedPaths.getAllPaths(oriNode,desNode,true,Path.MAX_PATH_LENGTH);
 			gpaths.sort(new Comparator<GraphPath<Node, Link>>() {
 				@Override
 				public int compare(GraphPath<Node, Link> o1, GraphPath<Node, Link> o2) {
