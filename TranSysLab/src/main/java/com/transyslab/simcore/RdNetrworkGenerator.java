@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class RdNetrworkGenerator {
@@ -126,6 +127,26 @@ public class RdNetrworkGenerator {
         return connEle;
     }
 
+    public static void writeOut(Document dom, String outputFileName){
+        try {
+            Transformer tr = TransformerFactory.newInstance().newTransformer();
+            tr.setOutputProperty(OutputKeys.INDENT, "yes");
+            tr.setOutputProperty(OutputKeys.METHOD, "xml");
+            tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+//            tr.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "roles.dtd");
+//            tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+            // send DOM to file
+            tr.transform(new DOMSource(dom),
+                    new StreamResult(new FileOutputStream(outputFileName)));
+
+        } catch (TransformerException te) {
+            System.out.println(te.getMessage());
+        } catch (IOException ioe) {
+            System.out.println(ioe.getMessage());
+        }
+    }
+
     public void writeXml (String masterFileName, String outputFileName){
         String roorDir = new File(masterFileName).getParent() + "/";
         Configuration config = ConfigUtils.createConfig(masterFileName);
@@ -166,25 +187,9 @@ public class RdNetrworkGenerator {
         dom.appendChild(tslEle);
 
         if (outputFileName==null)
-            outputFileName = outPath + "/" + "RN_" + LocalDateTime.now().toString() + ".xml";
+            outputFileName = outPath + "/" + "RN_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xml";
 
-        try {
-            Transformer tr = TransformerFactory.newInstance().newTransformer();
-            tr.setOutputProperty(OutputKeys.INDENT, "yes");
-            tr.setOutputProperty(OutputKeys.METHOD, "xml");
-            tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-//            tr.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "roles.dtd");
-//            tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-            // send DOM to file
-            tr.transform(new DOMSource(dom),
-                    new StreamResult(new FileOutputStream(outputFileName)));
-
-        } catch (TransformerException te) {
-            System.out.println(te.getMessage());
-        } catch (IOException ioe) {
-            System.out.println(ioe.getMessage());
-        }
+        writeOut(dom,outputFileName);
     }
 
 }
