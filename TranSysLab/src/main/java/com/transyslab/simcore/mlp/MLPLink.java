@@ -338,6 +338,13 @@ public class MLPLink extends Link {
 				inflowList.offer(theinflow);
 			}
 		}
+		inflowList.sort(new Comparator<Inflow>() {
+			@Override
+			public int compare(Inflow o1, Inflow o2) {
+				double d = o1.time-o2.time;
+				return d<0 ? -1 : d>0 ? 1 : 0;
+			}
+		});
 	}
 
 	protected void appendInflowFromCSV(int laneId, int tLinkID, double time, double speed, double dis, int realVID){
