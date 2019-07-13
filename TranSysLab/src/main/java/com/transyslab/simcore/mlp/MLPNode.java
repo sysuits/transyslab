@@ -20,6 +20,7 @@ import com.transyslab.commons.tools.SimulationClock;
 import com.transyslab.roadnetwork.Constants;
 import com.transyslab.roadnetwork.Node;
 import com.transyslab.roadnetwork.RoadNetwork;
+import com.transyslab.roadnetwork.VehicleType;
 
 import java.util.*;
 
@@ -269,7 +270,7 @@ public class MLPNode extends Node{
 				if (veh.conn!=null) {
 					if (veh.conn.vehsOnConn.indexOf(veh)==0){
 						//head use node speed
-						veh.newSpeed = getPassSpd();
+						veh.newSpeed = getPassSpd() * VehicleType.getPowerRate(veh.getType());
 					}
 					else {
 						double passSpd = veh.conn.calSpd();
@@ -280,7 +281,7 @@ public class MLPNode extends Node{
 							double maxSpd = ((MLPParameter) rn.getSimParameter()).maxSpeed(gap);
 							passSpd = Math.min(passSpd,maxSpd);
 						}
-						veh.newSpeed = passSpd;
+						veh.newSpeed = passSpd * VehicleType.getPowerRate(veh.getType());
 					}
 					veh.newDis -= passSpd*stepSize;
 				}

@@ -376,6 +376,7 @@ public class MLPVehicle extends Vehicle{
 	}
 	
 	public void setNewState(double spd) {
+		spd *= VehicleType.getPowerRate(getType());
 		if (ExpSwitch.SPD_BUFFER) {
 			spd = currentSpeed;
 			spdBuffer = Math.max(0, spdBuffer-1);
