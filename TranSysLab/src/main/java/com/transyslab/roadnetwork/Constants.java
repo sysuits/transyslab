@@ -165,6 +165,9 @@ public class Constants {
 
 	public static final int VEHICLE_LANE_USE = 0x000007F0; // 2032 sum //wym 111,1111,0000 in binary
 
+	public static final int VEHICLE_REGULAR = 0;
+	public static final int VEHICLE_FREIGHT = 1;
+
 	public static final int VEHICLE_SMALL = 0x00000010; // 16
 	public static final int VEHICLE_LOW = 0x00000020; // 32
 

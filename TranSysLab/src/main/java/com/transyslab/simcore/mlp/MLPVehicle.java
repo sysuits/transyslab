@@ -17,6 +17,7 @@
 package com.transyslab.simcore.mlp;
 
 import com.transyslab.roadnetwork.*;
+import jogamp.graph.font.typecast.ot.table.VheaTable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -390,6 +391,7 @@ public class MLPVehicle extends Vehicle{
 		if (leading != null) {
 			double gap = leading.Displacement() - leading.getLength() - Displacement();
 			double maxSpd = ((MLPParameter) getMLPNetwork().getSimParameter()).maxSpeed(gap);
+			maxSpd *= VehicleType.getPowerRate(getType());
 			newSpeed = Math.min(spd,maxSpd);
 		}
 		else {

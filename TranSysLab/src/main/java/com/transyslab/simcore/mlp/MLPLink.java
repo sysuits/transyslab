@@ -245,7 +245,7 @@ public class MLPLink extends Link {
 		//虚拟车(生产->初始化*2->加buff->替换)
 		MLPVehicle newVeh = ((MLPNetwork) network).generateVeh();
 		newVeh.initInfo(veh.getId(),veh.link,veh.segment,veh.lane,veh.rvId);
-		newVeh.init(((MLPNetwork) network).getNewVehID(), MLPParameter.VEHICLE_LENGTH, veh.getDistance(), veh.getCurrentSpeed());
+		newVeh.init(((MLPNetwork) network).getNewVehID(), veh.getLength(), veh.getDistance(), veh.getCurrentSpeed());
 		newVeh.setLCPath(this);
 		newVeh.fixPath();
 		MLPParameter mlpParameter = (MLPParameter) network.getSimParameter();
@@ -315,7 +315,22 @@ public class MLPLink extends Link {
 		}
 	}
 
-	public void generateInflow(int demand, double[] speed, double[] time, List<Lane> lanes, long tlnkID){
+	public int generateType(String types){
+		if (types==null||types.equals(""))
+			return Constants.VEHICLE_REGULAR;
+		Random r = getNetwork().getSysRand();
+		String[] t = types.split("/");
+		double s = 0.0;
+		for (int i = 0; i < t.length; i++) {
+			s += Double.parseDouble(t[i]);
+			if (r.nextDouble()<s)
+				return VehicleType.getTypeID(i);
+		}
+		System.err.println("type boundary error ignored and set to default");
+		return Constants.VEHICLE_REGULAR;
+	}
+
+	public void generateInflow(int demand, double[] speed, double[] time, List<Lane> lanes, long tlnkID, String types){
 		Random r = getNetwork().getSysRand();
 		double mean = speed[0];
 		double sd = speed[1];
@@ -334,7 +349,8 @@ public class MLPLink extends Link {
 						Math.min(vlim, Math.max(0.01,r.nextGaussian()*sd+mean)),
 						bornLane.getIndex(),
 						tlnkID,
-						bornLane.getLength());
+						bornLane.getLength())
+						.setVehClassType(generateType(types));
 				inflowList.offer(theinflow);
 			}
 		}

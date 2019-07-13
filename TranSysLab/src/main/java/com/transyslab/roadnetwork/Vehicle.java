@@ -317,6 +317,13 @@ public abstract class Vehicle{
 	public void fixPath() {
 		type |= Constants.VEHICLE_FIXEDPATH;
 	}
+
+	public void setVehClass(int vehClass){
+		if (vehClass<0||vehClass>15)
+			return;
+		type &= ~Constants.VEHICLE_CLASS;
+		type |= (vehClass&Constants.VEHICLE_CLASS);
+	}
 	
 	public double departTime() {
 		return departTime;

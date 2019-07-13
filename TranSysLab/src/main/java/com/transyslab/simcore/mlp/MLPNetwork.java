@@ -237,18 +237,20 @@ public class MLPNetwork extends RoadNetwork {
 //				System.out.println("DEBUG " + emitVeh.time + " " + emitVeh.laneIdx + " " + emitVeh.realVID);
 				MLPVehicle newVeh = generateVeh();
 				newVeh.initInfo(0,launchingLink,mlpLane(emitVeh.laneIdx).getSegment(),mlpLane(emitVeh.laneIdx),emitVeh.realVID);
-				newVeh.init(getNewVehID(), MLPParameter.VEHICLE_LENGTH, (float) emitVeh.dis, (float) emitVeh.speed);
+				MLPVehicle last = mlpLane(emitVeh.laneIdx).getTail();
+				double validDis = last==null ? emitVeh.dis : Math.max(last.getDistance()+last.getLength()+((MLPParameter)getSimParameter()).minGap(0.0),emitVeh.dis);
+				newVeh.init(getNewVehID(), VehicleType.getType(emitVeh.vehClassType).length, (float) validDis, (float) emitVeh.speed);
 				MLPNode upNode = (MLPNode) launchingLink.getUpNode();
 				MLPNode dnNode = emitVeh.tLinkID==0 ? null : (MLPNode) findLink(emitVeh.tLinkID).getDnNode();
 				assignPath(newVeh, upNode, dnNode, false);
 				//todo 调试阶段暂时固定路径
 				newVeh.fixPath();
-				newVeh.initNetworkEntrance(simClock.getCurrentTime(), mlpLane(emitVeh.laneIdx).getLength()-emitVeh.dis);
+				newVeh.initNetworkEntrance(simClock.getCurrentTime(), mlpLane(emitVeh.laneIdx).getLength()-validDis);
 				//进入路网，初始化强制换道参考值di
 				newVeh.updateDi();
 				if (ExpSwitch.SPD_BUFFER)
 					newVeh.spdBuffer = ExpSwitch.SPD_BUFFER_VAL;
-				//newVeh.init(getNewVehID(), 1, MLPParameter.VEHICLE_LENGTH, (float) emitVeh.dis, (float) now);
+				//newVeh.init(getNewVehID(), 1, MLPParameter.VEHICLE_LENGTH, (float) validDis, (float) now);
 				mlpLane(emitVeh.laneIdx).appendVeh(newVeh);
 			}
 		}
@@ -665,7 +667,7 @@ public class MLPNetwork extends RoadNetwork {
 								   Double.parseDouble(r.get(7))};
 				MLPLink theLink = findLink(fLinkID);
 				List<Lane> lanes = theLink.getStartSegment().getLanes();
-				theLink.generateInflow(demand, speed, time, lanes, tLinkID);
+				theLink.generateInflow(demand, speed, time, lanes, tLinkID, null);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -794,9 +796,9 @@ public class MLPNetwork extends RoadNetwork {
 					MLPLink fLink = findLink(Long.parseLong(items[0]));
 					List<Lane> fLanes = fLink.getStartSegment().getLanes();
 					if (items[1]==null || items[1].equals(""))
-						fLink.generateInflow(demand, speed, time, fLanes, 0);
+						fLink.generateInflow(demand, speed, time, fLanes, 0, items[8]);
 					else
-						fLink.generateInflow(demand, speed, time, fLanes, Long.parseLong(items[1]));
+						fLink.generateInflow(demand, speed, time, fLanes, Long.parseLong(items[1]),items[8]);
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -812,7 +814,7 @@ public class MLPNetwork extends RoadNetwork {
 		if (fLinks.size()>0 && tLinks.size()>0) {
 			fLinks.forEach(fLink->{
 				List<Lane> lanes = fLink.getStartSegment().getLanes();
-				tLinks.forEach(tLink -> ((MLPLink)fLink).generateInflow(demand, speed, time, lanes, tLink.getId()));
+				tLinks.forEach(tLink -> ((MLPLink)fLink).generateInflow(demand, speed, time, lanes, tLink.getId(),VehicleType.DEFAULT_TYPE_ARRAY_STR));
 			});
 		}
 	}

@@ -16,6 +16,8 @@
 
 package com.transyslab.simcore.mlp;
 
+import com.transyslab.roadnetwork.Constants;
+
 public class Inflow {
 	public double time;
 	public double speed; // unit m/s
@@ -23,22 +25,7 @@ public class Inflow {
 	public long tLinkID;
 	public double dis;
 	public int realVID;
-	
-	public Inflow(double[] row, MLPNetwork mlpNetwork){
-		if (row.length != 5) {
-			System.err.println("length not match");
-			return;
-		}
-		time = row[0];
-		speed = row[1];
-		int laneID = (int) row[2];
-		laneIdx = mlpNetwork.findLane(laneID).getIndex();
-		tLinkID = (int) row[3];
-		if ( row[4] < 0.0)
-			dis = mlpNetwork.mlpLane(laneIdx).getLength();
-		else
-			dis = row[4];
-	}
+	public int vehClassType;
 	
 	public Inflow(double time, double speed, int laneIdx, long tLinkID, double dis){
 		this.time = time;
@@ -46,15 +33,17 @@ public class Inflow {
 		this.laneIdx = laneIdx;
 		this.tLinkID = tLinkID;
 		this.dis = dis;
+		this.vehClassType = Constants.VEHICLE_REGULAR;
 	}
 
 	public Inflow(double time, double speed, int laneIdx, long tLinkID, double dis, int realVID){
-		this.time = time;
-		this.speed = speed;
-		this.laneIdx = laneIdx;
-		this.tLinkID = tLinkID;
-		this.dis = dis;
+		this(time, speed, laneIdx, tLinkID, dis);
 		this.realVID = realVID;
+	}
+
+	public Inflow setVehClassType(int vehClassType){
+		this.vehClassType = vehClassType;
+		return this;
 	}
 
 }

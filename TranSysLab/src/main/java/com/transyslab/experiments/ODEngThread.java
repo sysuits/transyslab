@@ -80,7 +80,7 @@ public class ODEngThread extends EngThread {
 		for (int i = 1; i < paras.length - 2; i++) {
 			MLPLink launchLink = mlpNetwork.findLink((int)paras[i]);
 			List<Lane> lanes = launchLink.getStartSegment().getLanes();
-			launchLink.generateInflow((int) paras[i+2], speed, time, lanes, (int) paras[i+1]);
+			launchLink.generateInflow((int) paras[i+2], speed, time, lanes, (int) paras[i+1], null);
 		}
 	}
 

@@ -84,7 +84,7 @@ public class MLPNode extends Node{
 //			List<MLPLane> candidates = lane.selectDnLane(veh.getNextLink().getStartSegment());//不以successiveDnLane运行
 			MLPLane nextLane = lane_.successiveDnLaneInLink((MLPLink) veh.getNextLink());
 			if (nextLane != null) {// at least one topology available down lane
-				if (nextLane.checkVolum(MLPParameter.VEHICLE_LENGTH,0.0)) {//check every down lane' volume //before: checkVolum(veh)
+				if (nextLane.checkVolum(veh.getLength(),0.0)) {//check every down lane' volume //before: checkVolum(veh)
 					//no priority control for now
 					boolean canpass = true;
 //						for (int j = 0; j < nextLane.nUpLanes() && canpass; j++) { //不以successiveDnLane运行
