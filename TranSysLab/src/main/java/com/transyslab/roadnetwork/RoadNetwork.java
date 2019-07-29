@@ -18,9 +18,11 @@
 package com.transyslab.roadnetwork;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.transyslab.commons.tools.SimulationClock;
 import com.transyslab.simcore.mlp.MLPNetwork;
+import com.transyslab.simcore.mlp.MLPNode;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
@@ -863,48 +865,61 @@ public abstract class RoadNetwork extends SimpleDirectedWeightedGraph<Node, Link
 	public void setArrowColor(double now, HashMap<SignalArrow, float[]> signalColor) {
 		{
 //			double now = getSimClock().getCurrentTime();
-			nodes.stream().
-					filter(n->(n.getType()&Constants.NODE_TYPE_SIGNALIZED_INTERSECTION)!=0).
-					forEach(n-> {
-						for (int i = 0; i < n.nUpLinks(); i++) {
-							Segment seg = n.getUpLink(i).getEndSegment();
-							for (int j = 0; j < seg.nLanes(); j++) {
-								Lane lane = seg.getLane(j);
-								lane.getSignalArrows().stream().forEach(a->{
-									//a.setColor(Constants.COLOR_RED);
-									if (a.rightTurnFree())
-										signalColor.put(a,Constants.COLOR_WHITE);
-									else
-										signalColor.put(a,Constants.COLOR_RED);
-								});
-							}
-						}
-						SignalPlan plan = n.findPlan(now);
-						SignalStage stage = plan.findStage(now);
-						if (stage!=null) {
-							stage.getLinkIDPairs().forEach(p->{
-								Segment seg = findLink(p[0]).getEndSegment();
-								Link l1 = null;
-								Link L2 = null;
-								for (int i = 0; i < seg.nLanes(); i++) {
-									seg.getLane(i).getSignalArrows().forEach(a->{
-										String checkDir = stage.getDirection(p).split("_")[1];
-										if (a.getDirection().equals(checkDir)) {
-											if (plan.isAmber(now)) {
-												//a.setColor(Constants.COLOR_AMBER);
-												signalColor.put(a,Constants.COLOR_AMBER);
-											}
-											else {
-												//a.setColor(Constants.COLOR_GREEN);
-												signalColor.put(a,Constants.COLOR_GREEN);
-											}
-										}
-									});
-								}
+			Object[] nodeArray = nodes.stream()
+					.filter(n->(n.getType()&Constants.NODE_TYPE_SIGNALIZED_INTERSECTION)!=0)
+					.toArray();
+			for (int m = 0; m < nodeArray.length; m++) {
+				Node n = (Node) nodeArray[m];
+				for (int i = 0; i < n.nUpLinks(); i++) {
+					Segment seg = n.getUpLink(i).getEndSegment();
+					for (int j = 0; j < seg.nLanes(); j++) {
+						Lane lane = seg.getLane(j);
+						lane.getSignalArrows().stream().forEach(a->{
+							//a.setColor(Constants.COLOR_RED);
+							if (a.rightTurnFree())
+								signalColor.put(a,Constants.COLOR_WHITE);
+							else
+								signalColor.put(a,Constants.COLOR_RED);
+						});
+					}
+				}
+				SignalPlan plan = n.findPlan(now);
+				if (plan==null){
+//					((MLPNode)n).turningMap.values().forEach(list->{
+//						list.forEach(lc->
+//								lc.upLane.getSignalArrows().forEach(a->
+//										signalColor.put(a,Constants.COLOR_RED)));
+//					});
+					((MLPNode)n).turningMap.forEach((k,v)->{
+						float[] c = ((MLPNode)n).getColor(now,k);
+						v.forEach(lc->
+								lc.upLane.getSignalArrows().forEach(a->
+										signalColor.put(a,c)));
+					});
+					continue;
+				}
+				SignalStage stage = plan.findStage(now);
+				if (stage!=null) {
+					float[] checkedColor = plan.isAdaptive ?
+							stage.currentColor() :
+							plan.isAmber(now) ?
+									Constants.COLOR_AMBER :
+									Constants.COLOR_GREEN;
+					stage.getLinkIDPairs().forEach(p->{
+						List<Long> checkedDnlanes =
+								findLink(p[1]).getStartSegment().getLanes()
+								.stream().mapToLong(Lane::getId)
+								.boxed().collect(Collectors.toList());
+						Segment seg = findLink(p[0]).getEndSegment();
+						for (int i = 0; i < seg.nLanes(); i++) {
+							seg.getLane(i).getSignalArrows().forEach(a->{
+								if (checkedDnlanes.contains(a.getReferConn().dnLaneID()))
+									signalColor.put(a,checkedColor);
 							});
 						}
-
 					});
+				}
+			}
 		}
 	}
 	public void rmLastLink(){

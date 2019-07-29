@@ -19,6 +19,7 @@ package com.transyslab.simcore;
 import com.transyslab.commons.io.CSVUtils;
 import com.transyslab.roadnetwork.*;
 import com.transyslab.simcore.mlp.MLPEngine;
+import com.transyslab.simcore.mlp.MLPLink;
 import com.transyslab.simcore.mlp.MLPNode;
 import com.transyslab.simcore.mlp.MacroCharacter;
 import org.apache.commons.csv.CSVRecord;
@@ -137,11 +138,11 @@ public abstract class SimulationEngine {
 				int stageId = Integer.parseInt(results.get(i).get("STAGEID"));
 				int flid = Integer.parseInt(results.get(i).get("FLID"));
 				int tlid = Integer.parseInt(results.get(i).get("TLID"));
-				LocalTime stime = LocalTime.parse(results.get(i).get("FTIME"),DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss"));
-				LocalTime etime = LocalTime.parse(results.get(i).get("TTIME"),DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss"));
+				LocalTime stime = LocalTime.parse(results.get(i).get("FTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				LocalTime etime = LocalTime.parse(results.get(i).get("TTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 				String turnInfo = results.get(i).get("TURN");
 				if ((turnInfo==null || turnInfo.equals("")) && this instanceof MLPEngine){
-					turnInfo = ((MLPNode)sNode).findTurningString((long)flid,(long)tlid);
+					turnInfo = ((MLPLink)getNetwork().findLink(flid)).getLinkDir() + "_" +  ((MLPNode)getNetwork().findNode(nodeId)).findTurningString((long)flid,(long)tlid);
 				}
 				double ft = stime.toSecondOfDay();
 				double tt = etime.toSecondOfDay();

@@ -217,7 +217,7 @@ public class Node implements NetworkObject {
 	public SignalPlan findPlan(double now) {
 		return signalPlans.stream().filter(s->s.beingApplied(now)).findFirst().orElse(null);
 	}
-	public List<int[]> greenLightLIDPairs(double now) {
+	public List<long[]> greenLightLIDPairs(double now) {
 		SignalStage stage = findPlan(now).findStage(now);
 		if (stage != null)
 			return stage.getLinkIDPairs();
@@ -233,6 +233,12 @@ public class Node implements NetworkObject {
 		boundBox.addKerbPoint(new GeoPoint(posPoint.getLocationX()+expand, posPoint.getLocationY()-expand,0.0));
 		boundBox.addKerbPoint(new GeoPoint(posPoint.getLocationX()+expand, posPoint.getLocationY()+expand,0.0));
 		boundBox.addKerbPoint(new GeoPoint(posPoint.getLocationX()-expand, posPoint.getLocationY()+expand,0.0));
+	}
+	protected void resetSignalPlan(){
+		getSignalPlans().forEach(p->{
+			if (p.isAdaptive)
+				p.reset();
+		});
 	}
 	
 

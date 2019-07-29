@@ -419,7 +419,7 @@ public class MLPNetwork extends RoadNetwork {
 		}
 		connectors.forEach(conn -> ((MLPConnector)conn).clearVehsOnConn());//remove vehicles on lane connector
 		for (int i = 0; i < nNodes(); i++) {
-			mlpNode(i).clearStatedVehs();//从Node上清除未加入路段的车辆
+			mlpNode(i).reset();//从Node上清除未加入路段的车辆
 		}
 		for (int i = 0; i < sensors.size(); i++) {
 			((MLPLoop) sensors.get(i)).clearRecords();//清除检测器记录结果

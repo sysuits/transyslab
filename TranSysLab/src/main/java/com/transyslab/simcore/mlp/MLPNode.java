@@ -256,7 +256,30 @@ public class MLPNode extends Node{
 	}
 	private boolean intersectionPass(double currentTime, long fLinkID, long tLinkID) {
 		return type(Constants.NODE_TYPE_SIGNALIZED_INTERSECTION)==0 ||
-				findPlan(currentTime).check(currentTime, fLinkID, tLinkID);
+				check(currentTime, fLinkID, tLinkID);
+	}
+	public boolean check(double currentTime, long fLinkID, long tLinkID){
+		SignalPlan thePlan = findPlan(currentTime);
+		if (thePlan!=null)
+			return thePlan.check(currentTime, fLinkID, tLinkID);
+		List<double[]> table =  signalTable.get(fLinkID+"_"+tLinkID);
+		if (table!=null)
+			return table.stream().anyMatch(d->currentTime>=d[0]&&currentTime<=d[1]);
+		return false;
+	}
+	public float[] getColor(double currentTime, String ftLinkID){
+		List<double[]> table =  signalTable.get(ftLinkID);
+		if (table==null)
+			return Constants.COLOR_RED;
+		else {
+			double[] t = table.stream().filter(d->currentTime>=d[0]&&currentTime<=d[1]).findFirst().orElse(null);
+			if (t==null)
+				return Constants.COLOR_RED;
+			else if (t[1]-currentTime>3.0)
+				return Constants.COLOR_GREEN;
+			else
+				return Constants.COLOR_AMBER;
+		}
 	}
 	protected MLPNode update() {
 		if (type(Constants.NODE_TYPE_INTERSECTION)!=0) {

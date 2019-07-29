@@ -338,6 +338,13 @@ public class MLPEngine extends SimulationEngine{
 
 //		System.out.println("DEBUG Sim world day: " + (now / 3600.0 / 24 + 1)  );
 
+		mlpNetwork.getNodes().stream()
+				.filter(node -> (node.getType()&Constants.NODE_TYPE_SIGNALIZED_INTERSECTION)!=0)
+				.forEach(node -> {
+					SignalPlan p = node.findPlan(now);
+					if (p!=null)
+						p.advance(clock.getStepSize(),(MLPNode) node);
+				});
 		clock.advance(clock.getStepSize());
 		stepCount++;
         if (stopSignal) {
@@ -428,6 +435,95 @@ public class MLPEngine extends SimulationEngine{
 			e.printStackTrace();
 		}
 		return 0;
+	}
+
+	@Override
+	public void readSignalPlan(String fileName) {
+		switch (config.getInt("signalPlanMode")){
+			case 1:
+				super.readSignalPlan(fileName);
+				break;
+			case 2:
+				readSignalPlan2(fileName);
+				break;
+			case 3:
+				readSignalPlan3(fileName);
+				break;
+			default:
+				return;
+		}
+	}
+
+	public void readSignalPlan2(String fileName) {
+		String[] headers = {"NODEID","FLID","TLID","FTIME","TTIME"};
+		try {
+			List<CSVRecord> results = CSVUtils.readCSV(fileName,headers);
+			for (int i = 1; i < results.size(); i++) {
+				long nid = Long.parseLong(results.get(i).get("NODEID"));
+				long flid = Long.parseLong(results.get(i).get("FLID"));
+				long tlid = Long.parseLong(results.get(i).get("TLID"));
+				LocalTime stime = LocalTime.parse(results.get(i).get("FTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				LocalTime etime = LocalTime.parse(results.get(i).get("TTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				MLPNode node = (MLPNode) mlpNetwork.findNode(nid);
+				if (node==null)
+					continue;
+				node.setType(Constants.NODE_TYPE_SIGNALIZED_INTERSECTION);
+				List<double[]> scheduler = node.signalTable.get(flid+"_"+tlid);
+				if (scheduler==null){
+					scheduler = new ArrayList<>();
+					node.signalTable.put(flid+"_"+tlid,scheduler);
+				}
+				scheduler.add(new double[]{stime.toSecondOfDay(),etime.toSecondOfDay()});
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void readSignalPlan3(String fileName) {
+		String[] headers = {"NODEID","PLANID","FTIME","TTIME","STAGEID","FTLIDS","TIMESERIAL"};
+		try {
+			List<CSVRecord> results = CSVUtils.readCSV(fileName,headers);
+			Node sNode = null;
+			SignalPlan plan = null;
+			SignalStage stage = null;
+			boolean newDirNeeded = false;
+			for (int i = 1; i < results.size(); i++) {
+				Long nodeId = Long.parseLong(results.get(i).get("NODEID"));
+				int planId = Integer.parseInt(results.get(i).get("PLANID"));
+				LocalTime stime = LocalTime.parse(results.get(i).get("FTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				LocalTime etime = LocalTime.parse(results.get(i).get("TTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				int stageId = Integer.parseInt(results.get(i).get("STAGEID"));
+				String[] ftLIds = results.get(i).get("FTLIDS").split("#");
+				String timeSerialStr = results.get(i).get("TIMESERIAL");
+				double ft = stime.toSecondOfDay();
+				double tt = etime.toSecondOfDay();
+				if (sNode == null || sNode.getId() != nodeId) {
+					sNode = getNetwork().findNode(nodeId);
+					//todo: log here, some node may change to signalized intersection
+					sNode.setType(Constants.NODE_TYPE_SIGNALIZED_INTERSECTION);
+					plan = null;
+				}
+				if (plan == null || plan.getId() != planId) {
+					plan = new SignalPlan(planId);
+					plan.isAdaptive = true;
+					plan.setFTime(ft);
+					plan.setTTime(tt);
+					sNode.addSignalPlan(plan);
+					stage = null;
+				}
+				if (stage == null || stage.getId() != stageId) {
+					stage = new SignalStage(stageId);
+					stage.initTimeSerial(timeSerialStr);
+					for (int j = 0; j < ftLIds.length; j++) {
+						stage.initLIDPair(ftLIds[j],(MLPNode) sNode);
+					}
+					plan.addStage(stage);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void readEmpData(String fileName) {

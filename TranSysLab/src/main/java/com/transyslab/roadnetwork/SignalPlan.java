@@ -16,6 +16,8 @@
 
 package com.transyslab.roadnetwork;
 
+import com.transyslab.simcore.mlp.MLPNode;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +29,8 @@ public class SignalPlan {
 	private double fTime;
 	private double tTime;
 	private double amberTime;
+	public boolean isAdaptive;
+	public int currentStageIdx;
 
 	public SignalPlan(int id) {
 		stages = new ArrayList<>();
@@ -45,6 +49,7 @@ public class SignalPlan {
 
 	public void addStage(SignalStage stage) {
 		stage.setPlanId(this.id);
+		stage.plan = this;
 		stages.add(stage);
 	}
 	public List<double[]> getSignalTable(){
@@ -85,7 +90,9 @@ public class SignalPlan {
 	}
 
 	public SignalStage findStage(double time) {
-		return findStage(findSID(time));
+		return isAdaptive ?
+				stages.get(currentStageIdx) :
+				findStage(findSID(time));
 	}
 
 	public double[] getStageTimeTable(double time) {
@@ -116,6 +123,19 @@ public class SignalPlan {
 
 	public void setAmberTime(double amberTime) {
 		this.amberTime = amberTime;
+	}
+
+	public void advance(double step, MLPNode node){
+		if (isAdaptive){
+			if (stages.get(currentStageIdx).advance(step, node)<0){
+				currentStageIdx = Math.floorMod(currentStageIdx+1, stages.size());
+			}
+		}
+	}
+
+	public void reset(){
+		stages.forEach(s->s.reset());
+		currentStageIdx = 0;
 	}
 
 }

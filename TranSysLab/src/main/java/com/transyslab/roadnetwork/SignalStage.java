@@ -16,19 +16,19 @@
 
 package com.transyslab.roadnetwork;
 
+import com.transyslab.simcore.mlp.MLPNode;
 import org.apache.commons.collections.map.HashedMap;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SignalStage {
 
-	private Map<int[],String> linkPairs2Direction;
-	private List<int[]> linkIDPairs;
+	private Map<long[],String> linkPairs2Direction;
+	private List<long[]> linkIDPairs;
 	private int id;
 	private int planId;
+	protected SignalPlan plan;
+	public SignalTimeSerial timeSerial;
 
 //	protected double cycle;
 
@@ -43,18 +43,19 @@ public class SignalStage {
 	public int getPlanId(){
 		return this.planId;
 	}
-	public String getDirection(int[] linkIdPair){
+	public String getDirection(long[] linkIdPair){
 		return this.linkPairs2Direction.get(linkIdPair);
 	}
 	public List<String> getDirections(){
 		return (List)linkPairs2Direction.values();
 	}
 	public boolean checkDir(long fLinkID, long tLinkID) {
-		return linkIDPairs.stream().anyMatch(i -> i[0]==fLinkID && i[1]==tLinkID);
+		return linkIDPairs.stream().anyMatch(i -> i[0]==fLinkID && i[1]==tLinkID) &&
+				(!plan.isAdaptive||timeSerial.currentState() >= SignalTimeSerial.AMBER);
 	}
 
-	public void addLIDPair(int fLID, int tLID, String direction) {
-		int[] linkIdPairs = new int[]{fLID,tLID};
+	public void addLIDPair(long fLID, long tLID, String direction) {
+		long[] linkIdPairs = new long[]{fLID,tLID};
 		linkIDPairs.add(linkIdPairs);
 		linkPairs2Direction.put(linkIdPairs,direction);
 	}
@@ -67,7 +68,53 @@ public class SignalStage {
 		return this.id;
 	}
 
-	public List<int[]> getLinkIDPairs () {
+	public List<long[]> getLinkIDPairs () {
 		return linkIDPairs;
+	}
+
+	public SignalStage initTimeSerial(String numStr){
+		this.timeSerial = new SignalTimeSerial(numStr);
+		return this;
+	}
+
+	public SignalStage initLIDPair(String ftLinkIds, MLPNode node){
+		String[] ftLinkStr = ftLinkIds.split("#");
+		for (int i = 0; i < ftLinkStr.length; i++) {
+			String[] ftlinkId = ftLinkStr[i].split("_");
+			long flid = Long.parseLong(ftlinkId[0]);
+			long tlid = Long.parseLong(ftlinkId[1]);
+			String turnInfo = node.getUpLink(ftLinkStr[i]).getLinkDir() + "_" +  node.findTurningString(flid,tlid);
+			addLIDPair(flid, tlid,turnInfo);
+		}
+		return this;
+	}
+
+	public int advance(double step, MLPNode mlpNode){
+		boolean vehArrival = false;
+		for (int i = 0; i < getLinkIDPairs().size(); i++) {
+			long[] pair = getLinkIDPairs().get(i);
+			if (mlpNode.vehArrival(pair[0]+"_"+pair[1])){
+				vehArrival = true;
+				break;
+			}
+		}
+		return timeSerial.advance(step,vehArrival);
+	}
+
+	public void reset(){
+		timeSerial.reset();
+	}
+
+	public float[] currentColor(){
+		switch (timeSerial.currentState()){
+			case SignalTimeSerial.GREEN:
+				return Constants.COLOR_GREEN;
+			case SignalTimeSerial.AMBER:
+				return Constants.COLOR_AMBER;
+			case SignalTimeSerial.RED:
+				return Constants.COLOR_RED;
+			default:
+				return Constants.COLOR_WHITE;
+		}
 	}
 }
