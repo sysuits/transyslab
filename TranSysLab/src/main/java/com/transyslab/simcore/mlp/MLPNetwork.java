@@ -591,7 +591,7 @@ public class MLPNetwork extends RoadNetwork {
 			// todo 应加入所有可行路径，非最短路
 //			GraphPath<Node, Link> gpath = DijkstraShortestPath.findPathBetween(this, oriNode, desNode);
 			//临时修改 wym
-			List<GraphPath<Node, Link>> gpaths = (List<GraphPath<Node, Link>>) allDirectedPaths.getAllPaths(oriNode,desNode,true,Path.MAX_PATH_LENGTH);
+			List<GraphPath<Node, Link>> gpaths = getAllPaths(oriNode,desNode);
 			gpaths.sort(new Comparator<GraphPath<Node, Link>>() {
 				@Override
 				public int compare(GraphPath<Node, Link> o1, GraphPath<Node, Link> o2) {
@@ -612,6 +612,10 @@ public class MLPNetwork extends RoadNetwork {
 		else {
 			return thePair;
 		}
+	}
+
+	public List<GraphPath<Node, Link>> getAllPaths(Node oriNode, Node desNode){
+		return (List<GraphPath<Node, Link>>) allDirectedPaths.getAllPaths(oriNode,desNode,true,Path.MAX_PATH_LENGTH);
 	}
 
 	//MLPVehicle recycle operations
