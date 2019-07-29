@@ -188,4 +188,20 @@ public class MLPConnector extends Connector {
     public String getTurningDir(){
         return this.turingDir;
     }
+
+    public MLPLink getUpLink(){
+        return (MLPLink) upLane.getLink();
+    }
+
+    public MLPLink getDnLink(){
+        return (MLPLink) dnLane.getLink();
+    }
+
+    public MLPSegment getUpSeg(){
+        return (MLPSegment) getUpLink().getEndSegment();
+    }
+
+    public MLPSegment getDnSeg(){
+        return (MLPSegment) getDnLink().getStartSegment();
+    }
 }

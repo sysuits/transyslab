@@ -16,23 +16,29 @@
 
 package com.transyslab.simcore.mlp;
 
+import com.transyslab.commons.tools.GeoUtil;
 import com.transyslab.commons.tools.SimulationClock;
-import com.transyslab.roadnetwork.Constants;
-import com.transyslab.roadnetwork.Node;
-import com.transyslab.roadnetwork.RoadNetwork;
-import com.transyslab.roadnetwork.VehicleType;
+import com.transyslab.roadnetwork.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MLPNode extends Node{
+	public static double NODE_ALPHA = 1.0;
+	public static double NODE_BETA = 1.0;
+	public static double NODE_PASS_SPD = 80.0/3.6;
 	private LinkedList<MLPVehicle> statedVehs;
 	protected double passSpd = 40.0/3.6;
+	public HashMap<String, List<double[]>> signalTable;
+	public HashMap<String, List<String>> confilctDirs;
 	public int stopCount;
-	private HashMap<String, List<MLPConnector>> turningMap;
+	public HashMap<String, List<MLPConnector>> turningMap;
 	public MLPNode() {
 		statedVehs = new LinkedList<>();
 		stopCount = 0;
 		turningMap = new HashMap<>();
+		signalTable = new HashMap<>();
+		confilctDirs = new HashMap<>();
 	}
 	public int serve(MLPVehicle veh) {
 		MLPLane lane_ = veh.lane;
@@ -251,8 +257,12 @@ public class MLPNode extends Node{
 		statedVehs.clear();
 		stopCount = 0;
 	}
+	protected void reset(){
+		clearStatedVehs();
+		resetSignalPlan();
+	}
 	public double getPassSpd() {
-		return passSpd;
+		return this.NODE_PASS_SPD;
 	}
 	private boolean intersectionPass(double currentTime, long fLinkID, long tLinkID) {
 		return type(Constants.NODE_TYPE_SIGNALIZED_INTERSECTION)==0 ||
@@ -289,7 +299,25 @@ public class MLPNode extends Node{
 			SimulationClock clock = rn.getSimClock();
 			double stepSize = clock.getStepSize();
 			double currentTime = clock.getCurrentTime();
-			for (MLPVehicle veh : statedVehs) {
+			HashMap<String, Double> vMap = calChannelSpds();
+			turningMap.forEach((dir,conns)->{
+				double v = vMap.get(dir);
+				conns.forEach(c->{
+					for (int i = 0; i < c.vehsOnConn.size(); i++) {
+						MLPVehicle veh = c.vehsOnConn.get(i);
+						if (i==0)
+							veh.newSpeed = getPassSpd() * VehicleType.getPowerRate(veh.getType());
+						else {
+							MLPVehicle leading = c.vehsOnConn.get(c.vehsOnConn.indexOf(veh)-1);
+							double gap = veh.getDistance() - leading.getLength() - leading.getDistance();
+							double maxSpd = ((MLPParameter) rn.getSimParameter()).maxSpeed(gap);
+							veh.newSpeed = Math.min(v,maxSpd) * VehicleType.getPowerRate(veh.getType());
+						}
+						veh.newDis -= veh.newSpeed*stepSize;
+					}
+				});
+			});
+			/*for (MLPVehicle veh : statedVehs) {
 				if (veh.conn!=null) {
 					if (veh.conn.vehsOnConn.indexOf(veh)==0){
 						//head use node speed
@@ -306,9 +334,9 @@ public class MLPNode extends Node{
 						}
 						veh.newSpeed = passSpd * VehicleType.getPowerRate(veh.getType());
 					}
-					veh.newDis -= passSpd*stepSize;
+					veh.newDis -= veh.newSpeed*stepSize;
 				}
-			}
+			}*/
 		}
 		return this;
 	}
@@ -343,5 +371,109 @@ public class MLPNode extends Node{
 
 	public boolean dnLinkExist(MLPLink dnLink){
 		return dnLinks.contains(dnLink);
+	}
+
+	public void updateConflictDirs(){
+		List<String> turningDirs = new ArrayList<>(turningMap.keySet());
+		if (turningDirs.size()<=1)
+			return;
+		for (int i = 0; i < turningDirs.size()-1; i++) {
+			String td1 = turningDirs.get(i);
+			String[] td1_ = td1.split("_");
+			List<GeoPoint> td1_list = getMidVec(td1);
+			for (int j = i+1; j < turningDirs.size(); j++) {
+				String td2 = turningDirs.get(j);
+				String[] td2_ = td2.split("_");
+				if (!td1_[0].equals(td2_[0])&&!td1_[1].equals(td2_[1])){
+					List<GeoPoint> td2_list = getMidVec(td2);
+					if (GeoUtil.isCross(td1_list,td2_list))
+						addConflictDir(td1,td2);
+				}
+			}
+		}
+	}
+
+	private void addConflictDir(String ftLinkID_1, String ftLinkID_2){
+		addOneSideConflictDir(ftLinkID_1,ftLinkID_2);
+		addOneSideConflictDir(ftLinkID_2,ftLinkID_1);
+	}
+
+	private void addOneSideConflictDir(String ftLinkID_1, String ftLinkID_2){
+		List<String> conflictedList1 = confilctDirs.get(ftLinkID_1);
+		if (conflictedList1==null){
+			conflictedList1 = new ArrayList<>();
+			confilctDirs.put(ftLinkID_1,conflictedList1);
+		}
+		conflictedList1.add(ftLinkID_2);
+	}
+
+	public List<GeoPoint> getMidVec(String ftLinkID){
+		List<MLPConnector> conns = turningMap.get(ftLinkID);
+		if (conns==null)
+			return null;
+		GeoPoint fMid = GeoPoint.center(conns.stream().map(c->c.upLane.getLastCtlPoint()).collect(Collectors.toList()));
+		GeoPoint tMid = GeoPoint.center(conns.stream().map(c->c.dnLane.getFirstCtlPoint()).collect(Collectors.toList()));
+		List<GeoPoint> ans = new ArrayList<>();
+		ans.add(fMid);
+		ans.add(tMid);
+		return ans;
+	}
+
+	public double getChannelVehs(String ftLinkID){
+		List<MLPConnector> conns = turningMap.get(ftLinkID);
+		return conns==null ?
+				0 :
+				conns.stream().mapToDouble(c->c.vehsOnConn.size()).sum();
+	}
+
+	public MLPLink getUpLink(String ftLinkId){
+		return (MLPLink) turningMap.get(ftLinkId).get(0).upLane.getLink();
+	}
+
+	public MLPLink getDnLink(String ftLinkId){
+		return (MLPLink) turningMap.get(ftLinkId).get(0).dnLane.getLink();
+	}
+
+	public double getEffectiveNLanes(MLPConnector connector){
+		double n1 = connector.getUpSeg().nLanes();
+		double n2 = connector.getDnSeg().nLanes();
+		return 0.5 * (n1+n2);
+	}
+
+	public HashMap<String, Double> calChannelSpds(){
+		HashMap<String, Double> kMap = new HashMap<>();
+		HashMap<String, Double> vMap = new HashMap<>();
+		double kj = ((MLPLink)getUpLink(0)).dynaFun.linkCharacteristics[2];
+		turningMap.forEach((dir,conns)->{
+			double effectiveLaneCount = getEffectiveNLanes(conns.get(0));
+			double meanLaneLength = conns.stream().mapToDouble(c->c.getLength()).average().getAsDouble();
+			double nVehs = conns.stream().mapToDouble(c->MLPVehicles.calPCU(c.vehsOnConn)).sum();
+			double k = nVehs / meanLaneLength / effectiveLaneCount;
+			kMap.put(dir,k);
+			vMap.put(dir,getPassSpd()*kTerm(k,kj));//getPassSpd()*kTerm(k,kj)
+		});
+		confilctDirs.forEach((dir,conflictDirs)->{
+			for (int i = 0; i < conflictDirs.size(); i++) {
+				double k = kMap.get(conflictDirs.get(i));
+				vMap.put(dir,vMap.get(dir)*kTerm(k,kj));
+			}
+		});
+		return vMap;
+	}
+
+	private double kTerm(double k, double kj){
+		if (k>=kj)
+			return 0;
+		return Math.pow(1.0-Math.pow(k/kj,MLPNode.NODE_ALPHA),MLPNode.NODE_BETA);
+	}
+
+	public boolean vehArrival(String ftLinkId){
+		List<MLPConnector> conns = turningMap.get(ftLinkId);
+		for (int i = 0; i < conns.size(); i++) {
+			MLPVehicle veh = conns.get(i).upLane.getHead();
+			if (veh!=null)//&& veh.getDistance()<10
+				return true;
+		}
+		return false;
 	}
 }

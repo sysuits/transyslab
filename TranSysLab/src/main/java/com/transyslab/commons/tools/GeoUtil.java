@@ -388,8 +388,27 @@ public class GeoUtil {
 		return sf;
 	}
 	// 判断折线是否相交（两折线中的任意线段跨立）
-	public static boolean isCross(List<GeoPoint> ploylineP, List<GeoPoint> polyLineQ) {
-		//todo: 实现几何判断逻辑
+	public static boolean isCross(List<GeoPoint> polylineP, List<GeoPoint> polyLineQ) {
+		for (int i = 0; i < polylineP.size() - 1; i++) {
+			GeoPoint P1 = polylineP.get(i);
+			GeoPoint P2 = polylineP.get(i+1);
+			for (int j = 0; j < polyLineQ.size() - 1; j++) {
+				GeoPoint Q1 = polyLineQ.get(j);
+				GeoPoint Q2 = polyLineQ.get(j+1);
+				if (isCross(P1,P2,Q1,Q2))
+					return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean isCross(GeoPoint P1, GeoPoint P2, GeoPoint Q1, GeoPoint Q2){
+		double direction1 = Q1.minus(P1).cross(P2.minus(P1)) * P2.minus(P1).cross(Q2.minus(P1));
+		if (direction1>=0){
+			double direction2 = P1.minus(Q1).cross(Q2.minus(Q1)) * Q2.minus(Q1).cross(P2.minus(Q1));
+			if (direction2>=0)
+				return true;
+		}
 		return false;
 	}
 }

@@ -167,6 +167,10 @@ public class MLPNetwork extends RoadNetwork {
 			((MLPLane) l).checkConectedLane();
 		}
 
+		for (Node n: nodes){
+			((MLPNode)n).updateConflictDirs();
+		}
+
 		SyncCounter counter = new SyncCounter();
 		links.parallelStream().forEach(l->{
 			//Ô¤Áô

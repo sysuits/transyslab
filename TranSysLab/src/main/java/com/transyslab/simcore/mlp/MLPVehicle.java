@@ -529,7 +529,6 @@ public class MLPVehicle extends Vehicle{
 //			sb.append("di: " + diMap.get(getLane()) + "\n");
 //		}
 		if (conn!=null){
-			sb.append("LC speed: " + conn.calSpd() + "\n");
 			sb.append("Km: " + ((MLPLink) conn.dnLane.getLink()).dynaFun.linkCharacteristics[2] + "\n");
 			sb.append("k: " + ((double)conn.queueNum())/conn.getLength() + "\n");
 		}
@@ -623,5 +622,9 @@ public class MLPVehicle extends Vehicle{
 
 	public double currentMileage(){
 		return Displacement() + mileage();
+	}
+
+	public double getPCU(){
+		return VehicleType.getType(this.getType()).pcu;
 	}
 }

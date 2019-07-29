@@ -533,4 +533,12 @@ public class MLPLane extends Lane implements Comparator<MLPLane>{
 			this.signalArrows.add(arrow);
 		}
 	}
+
+	public GeoPoint getLastCtlPoint(){
+		return this.ctrlPoints.get(this.ctrlPoints.size()-1);
+	}
+
+	public GeoPoint getFirstCtlPoint(){
+		return this.ctrlPoints.get(0);
+	}
 }
