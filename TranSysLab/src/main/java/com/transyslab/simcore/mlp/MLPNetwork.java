@@ -22,6 +22,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -680,12 +682,12 @@ public class MLPNetwork extends RoadNetwork {
 		String[] header = {"laneID", "tLinkID", "time", "speed", "dis", "rvId"};
 		try {
 			List<CSVRecord> rows = CSVUtils.readCSV(filePath,header);
-			int theLNID = Integer.MIN_VALUE;
+			Long theLNID = Long.MIN_VALUE;
 			MLPLane theLN = null;
 			MLPLink theLNK = null;
 			for(int i = 1; i<rows.size(); i++){
 				CSVRecord r = rows.get(i);
-				int LNID = Integer.parseInt(r.get(0));
+				long LNID = Long.parseLong(r.get(0));
 				if (theLNID != LNID) {
 					theLN = (MLPLane) findLane(LNID);
 					theLNK = (MLPLink) theLN.getLink();
@@ -712,10 +714,10 @@ public class MLPNetwork extends RoadNetwork {
 					" ORDER BY rvid";
 			PreparedStatement ps = con.prepareStatement(sql);
 			ResultSet result = ps.executeQuery();
-			int theLNID = Integer.MIN_VALUE;
+			Long theLNID = Long.MIN_VALUE;
 			MLPLink theLNK = null;
 			while (result.next()) {
-				int LNID = result.getInt(1);
+				Long LNID = result.getLong(1);
 				if (theLNID != LNID) {
 					MLPLane theLN = (MLPLane) findLane(LNID);
 					theLNK = (MLPLink) theLN.getLink();
@@ -745,12 +747,12 @@ public class MLPNetwork extends RoadNetwork {
 
 			String readLine = "";
 			MLPLink theLNK = null;
-			int theLNID = Integer.MIN_VALUE;
+			Long theLNID = Long.MIN_VALUE;
 			double emitTime = 0.0;
 			while ((readLine = bReader.readLine()) != null && emitTime <= tTime) {
 				String[] items = readLine.split(",");
-				emitTime = Double.parseDouble(items[2]);
-				int LNID = Integer.parseInt(items[0]);
+				emitTime = LocalTime.parse(items[2], DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toSecondOfDay();
+				long LNID = Long.parseLong(items[0]);
 				if (theLNID != LNID) {
 					MLPLane theLN = (MLPLane) findLane(LNID);
 					theLNK = (MLPLink) theLN.getLink();
