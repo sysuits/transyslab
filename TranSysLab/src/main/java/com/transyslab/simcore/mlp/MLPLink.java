@@ -363,7 +363,7 @@ public class MLPLink extends Link {
 		});
 	}
 
-	protected void appendInflowFromCSV(int laneId, int tLinkID, double time, double speed, double dis, int realVID){
+	protected void appendInflowFromCSV(Long laneId, int tLinkID, double time, double speed, double dis, int realVID){
 		//将小于0的dis置为路段起点
 		double dis2 = dis < 0.0 ? getNetwork().findLane(laneId).getLength() : dis;
 		int laneIdx = getNetwork().findLane(laneId).getIndex();
@@ -484,5 +484,27 @@ public class MLPLink extends Link {
 
 	public boolean checkTurningTo(Long nextLinkID) {
 		return turnableNextLinks.keySet().contains(nextLinkID);
+	}
+
+	public String getLinkDir(){
+		GeoPoint fp = getStartSegment().getCtrlPoints().get(0);
+		List<GeoPoint> es = getEndSegment().getCtrlPoints();
+		GeoPoint ep = es.get(es.size()-1);
+		double dx = ep.getLocationX() - fp.getLocationX();
+		double dy = ep.getLocationY() - fp.getLocationY();
+		String ans = "ERROR";
+		if (Math.abs(dx)>Math.abs(dy)){
+			if (dx>0)
+				ans = "W";
+			else
+				ans = "E";
+		}
+		else if (Math.abs(dx)<Math.abs(dy)){
+			if (dy>0)
+				ans = "S";
+			else
+				ans = "N";
+		}
+		return ans;
 	}
 }

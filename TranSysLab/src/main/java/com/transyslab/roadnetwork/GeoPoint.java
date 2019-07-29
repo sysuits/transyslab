@@ -18,6 +18,7 @@
 package com.transyslab.roadnetwork;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  */
@@ -174,6 +175,9 @@ public class GeoPoint {
 	public double cross(GeoPoint b){
 		return this.getLocationX()*b.getLocationY() - this.getLocationY()*b.getLocationX();
 	}
+	public double dot(GeoPoint b){
+		return this.getLocationX()*b.getLocationX() + this.getLocationY()*b.getLocationY();
+	}
 
 	@Override
 	public String toString() {
@@ -187,5 +191,12 @@ public class GeoPoint {
 		return new GeoPoint(Double.parseDouble(coords[0]),
 				Double.parseDouble(coords[1]),
 				Double.parseDouble(coords[2]));
+	}
+
+	public static GeoPoint center(List<GeoPoint> points){
+		double meanX = points.stream().mapToDouble(GeoPoint::getLocationX).average().getAsDouble();
+		double meanY = points.stream().mapToDouble(GeoPoint::getLocationY).average().getAsDouble();
+		double meanZ = points.stream().mapToDouble(GeoPoint::getLocationZ).average().getAsDouble();
+		return new GeoPoint(meanX,meanY,meanZ);
 	}
 }
