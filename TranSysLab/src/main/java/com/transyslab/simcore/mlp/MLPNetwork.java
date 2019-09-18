@@ -801,7 +801,7 @@ public class MLPNetwork extends RoadNetwork {
 						Double.parseDouble(items[6]),
 						Double.parseDouble(items[7])};
 				if (items[0]==null || items[0].equals(""))
-					leafEmit(demand, speed, time);
+					rand10Emit(demand, speed, time, items[8]);
 				else {
 					MLPLink fLink = findLink(Long.parseLong(items[0]));
 					List<Lane> fLanes = fLink.getStartSegment().getLanes();
@@ -827,6 +827,16 @@ public class MLPNetwork extends RoadNetwork {
 				tLinks.forEach(tLink -> ((MLPLink)fLink).generateInflow(demand, speed, time, lanes, tLink.getId(),VehicleType.DEFAULT_TYPE_ARRAY_STR));
 			});
 		}
+	}
+
+	public void rand10Emit(int demand, double[] speed, double[] time, String types) {
+		double cr = Math.max(0.1, 1.0/((double)links.size()));
+		double demandEff = ((double)demand) / (((double)links.size())*cr);
+		links.forEach(fLink->{
+			if (getSysRand().nextDouble()<=cr){
+				((MLPLink)fLink).generateInflow((int)Math.round(demandEff), speed, time, fLink.getStartSegment().getLanes(), 0, types);
+			}
+		});
 	}
 
 	public void clearInflows() {
