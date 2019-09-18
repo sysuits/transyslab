@@ -61,10 +61,13 @@ public class MLPNode extends Node{
 				conns.sort(new Comparator<MLPConnector>() {
 					@Override
 					public int compare(MLPConnector o1, MLPConnector o2) {
-						double delta = o1.getLength() - o2.getLength();
-						return delta < 0 ?
-								-1 :
-								delta > 0 ? 1 : 0;
+						double d1 = Math.abs(o1.dnLane.getLnPosNum()-o1.upLane.getLnPosNum());
+						double d2 = Math.abs(o2.dnLane.getLnPosNum()-o2.upLane.getLnPosNum());
+						return Double.compare(d1,d2);
+//						double delta = o1.getLength() - o2.getLength();
+//						return delta < 0 ?
+//								-1 :
+//								delta > 0 ? 1 : 0;
 					}
 				});
 				for (int i = 0; i < conns.size(); i++) {
@@ -135,7 +138,7 @@ public class MLPNode extends Node{
 		lane_.scheduleNextEmitTime();//passed upstream lane
 		//arrived destination no constrain
 		//record linkTravelTime
-		link_.tripTime.add(new double[] {veh.timeEntersLink(), veh.dspLinkEntrance, currentTime + veh.newDis/veh.newSpeed});
+		link_.tripTime.add(new double[] {veh.timeEntersLink(), veh.dspLinkEntrance, currentTime + veh.newDis/veh.newSpeed, veh.rvId});
 		lane_.removeVeh(veh, true);
 		return Constants.VEHICLE_RECYCLE;
 	}
@@ -201,7 +204,7 @@ public class MLPNode extends Node{
 				timeAtPoint = currentTime + veh.newDis/veh.newSpeed;
 			}
 		}
-		link_.tripTime.add(new double[] {veh.timeEntersLink(), veh.dspLinkEntrance, timeAtPoint});//record linkTravelTime of old link
+		link_.tripTime.add(new double[] {veh.timeEntersLink(), veh.dspLinkEntrance, timeAtPoint, veh.rvId});//record linkTravelTime of old link
 		statedVehs.add(veh);
 	}
 	protected void dispatchStatedVeh() {
