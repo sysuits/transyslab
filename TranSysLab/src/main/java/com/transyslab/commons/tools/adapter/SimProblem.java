@@ -16,21 +16,48 @@
 
 package com.transyslab.commons.tools.adapter;
 
-import com.transyslab.commons.tools.mutitask.SimulationConductor;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.transyslab.commons.io.ConfigUtils;
+import com.transyslab.commons.tools.mutitask.EngThread;
+import com.transyslab.commons.tools.mutitask.SimController;
 import com.transyslab.commons.tools.mutitask.TaskCenter;
 import com.transyslab.commons.tools.mutitask.TaskGiver;
-import com.transyslab.commons.tools.mutitask.EngThread;
+import org.apache.commons.configuration2.Configuration;
 import org.uma.jmetal.problem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.DoubleSolution;
 
 public abstract class SimProblem extends AbstractDoubleProblem implements TaskGiver {
+    protected Configuration config;
+    private static Injector injector;
     private TaskCenter taskCenter;
 
     public SimProblem() {
         taskCenter = new TaskCenter();
     }
 
-    public abstract void initProblem(String masterFileName);
+    public void initProblem(String masterFileName){
+        this.config = ConfigUtils.createConfig(masterFileName);
+        int numOfEngines = config.getInt("numOfEngines");
+        for (int i = 0; i < numOfEngines; i++) {
+            //标准引擎的初始化与参数的设置
+            EngThread engThread = createEngThread();
+            engThread.config(masterFileName);
+            engThread.setName("eng" + i);
+            engThread.assignTo(this);
+            engThread.start();
+        }
+    }
+
+    protected EngThread createEngThread(){
+        if (injector==null){
+            injector = Guice.createInjector(getModule());
+        }
+        return injector.getInstance(EngThread.class);
+    }
+
+    protected abstract AbstractModule getModule();
 
     @Override
     public void evaluate(DoubleSolution doubleSolution) {
@@ -47,22 +74,17 @@ public abstract class SimProblem extends AbstractDoubleProblem implements TaskGi
         return taskCenter;
     }
 
-    public void prepareEng(String masterFileDir, int numOfEngines) {
-        for (int i = 0; i < numOfEngines; i++) {
-            //标准引擎的初始化与参数的设置
-            EngThread engThread = createEngThread("eng" + i, masterFileDir);
-            engThread.setSimConductor(createConductor());
-            engThread.assignTo(this);
-            engThread.start();
-        }
-
-    }
-
     public void closeProblem() {
         dismissAllWorkingThreads();
     }
 
-    protected abstract EngThread createEngThread(String name, String masterFileDir);
+    public Configuration getConfig(){
+        checkConfig();
+        return config;
+    }
 
-    protected abstract SimulationConductor createConductor();
+    public void checkConfig(){
+        if (config==null)
+            System.err.println("this problem has no config info.");
+    }
 }

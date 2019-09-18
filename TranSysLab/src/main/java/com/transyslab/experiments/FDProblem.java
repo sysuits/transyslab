@@ -16,23 +16,7 @@
 
 package com.transyslab.experiments;
 
-import com.transyslab.commons.io.ConfigUtils;
-import com.transyslab.commons.tools.FitnessFunction;
-import com.transyslab.commons.tools.adapter.SimProblem;
-import com.transyslab.commons.tools.adapter.SimSolution;
-import com.transyslab.commons.tools.mutitask.EngThread;
-import com.transyslab.commons.tools.mutitask.SimulationConductor;
-import com.transyslab.simcore.SimulationEngine;
-import com.transyslab.simcore.mlp.*;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.ArrayUtils;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-
-public class FDProblem extends MLPProblem{
+/*public class FDProblem extends BoundarySimProblem {}{
 
 	public FDProblem(){	}
 	public FDProblem(String masterFileName) {
@@ -50,4 +34,4 @@ public class FDProblem extends MLPProblem{
 			return null;
 		}
 	}
-}
+}*/

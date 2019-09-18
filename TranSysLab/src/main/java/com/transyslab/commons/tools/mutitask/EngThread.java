@@ -16,96 +16,70 @@
 
 package com.transyslab.commons.tools.mutitask;
 
+import com.google.inject.Inject;
 import com.transyslab.commons.io.ConfigUtils;
 import com.transyslab.commons.io.TXTUtils;
 import com.transyslab.commons.tools.adapter.SimProblem;
-import com.transyslab.commons.tools.adapter.SimSolution;
 import com.transyslab.simcore.SimulationEngine;
-import com.transyslab.simcore.mesots.MesoEngine;
-import com.transyslab.simcore.mlp.MLPEngine;
 import org.apache.commons.configuration2.Configuration;
 
 import java.io.File;
 import java.util.Arrays;
 
 public class EngThread extends Thread implements TaskWorker{
+	protected Configuration config;
 	private TaskCenter taskCenter;
-	private SimulationEngine engine;
+	protected SimController controller;
 	private boolean logOn;
 	private boolean taskSpecified;
-	private SimulationConductor conductor;
 	private static TXTUtils writer;
 	private boolean broadcastNeeded;
 
-	public EngThread(String thread_name, String masterFileDir, TaskCenter taskCenter) {
-		this(thread_name,masterFileDir);
-		this.taskCenter = taskCenter;
+	@Inject
+	public EngThread(SimController ctrl){
+		taskSpecified = false;//non-specified task by default
+		this.controller = ctrl;
 	}
 
-	public EngThread(String thread_name, String masterFileDir) {
+	public EngThread(String masterFileName, SimController ctrl){
+		this(ctrl);
+		config(masterFileName);
+	}
+
+	public EngThread(String thread_name, String masterFileName, SimController ctrl) {
+		this(masterFileName,ctrl);
 		setName(thread_name);
+	}
 
-		Configuration config = ConfigUtils.createConfig(masterFileDir);
+	public EngThread(TaskCenter taskCenter, String thread_name, String masterFileName, SimController ctrl) {
+		this(thread_name,masterFileName,ctrl);
+		assignTo(taskCenter);
+	}
 
-		String modelType = config.getString("modelType");
+	public EngThread config(String masterFileDir){
+		this.controller.config(masterFileDir);
+		config = ConfigUtils.createConfig(masterFileDir);
 		broadcastNeeded = config.getBoolean("broadcast");
-		initEngine(modelType, masterFileDir);
-
 		logOn = Boolean.parseBoolean(config.getString("positionLogOn"));
 		if (writer==null && logOn){
 			String rootDir = new File(masterFileDir).getParent() + "/";
 			String outputPath = rootDir + config.getString("outputPath");
 			writer = new TXTUtils(  outputPath + "/" +"solutions.csv");
 		}
-		taskSpecified = false;//默认为false
-	}
-
-	public void initEngine(String modelType, String masterFileDir) {
-		switch (modelType) {
-			case "MesoTS":
-				//TODO dir需要去掉文件名后缀
-				engine = new MesoEngine(0,null);
-				break;
-			case "MLP":
-				engine = new MLPEngine(masterFileDir);
-				break;
-			default:
-				System.err.println("Unsupported model name");
-		}
+		return this;
 	}
 
 	@Override
 	public double[] worksWith(Task task) {
 		long t_start = System.currentTimeMillis();
 
-		if (conductor == null)
-			System.err.println("Engine behavior not been determined");
-
-		//参数设置
-		conductor.modifyEngineBeforeStart(engine, (SimSolution) task);
-
-		if (engine instanceof MLPEngine)
-			((MLPEngine) engine).fileOutTag = Arrays.toString(task.getInputVariables());
-
-		//仿真过程
-		if (!conductor.violateConstraints(engine)) {
-			do {
-				engine.repeatRun();
-			}
-			while (conductor.needRerun(engine));
-		}
-
-		//结果评价
-		double[] fitness = conductor.evaluateFitness(engine);
-
-		//修改solution的属性
-		conductor.modifySolutionBeforeEnd(engine, (SimSolution) task);
+		double[] fitness = controller.simulate(task);
 
 		//输出解的log
 		if (logOn) {
 			double timeUse = System.currentTimeMillis() - t_start;
 			if(broadcastNeeded) {
-				System.out.println(getName() + "runtimes: " + engine.countRunTimes() + " timer: " + timeUse);
+				System.out.println(getName() + "runtimes: " + controller.countRunTimes() + " timer: " + timeUse);
 				System.out.println("parameter: " + Arrays.toString(task.getInputVariables()) + "fitness: " + Arrays.toString(fitness));
 			}
 			writer.writeNFlush(Arrays.toString(task.getInputVariables())
@@ -115,7 +89,7 @@ public class EngThread extends Thread implements TaskWorker{
 					Arrays.toString(fitness).replace(" ","")
 							.replace("[","")
 							.replace("]","") + "," +
-					Thread.currentThread().getName() + "_" + engine.countRunTimes() + "_" + Arrays.toString(task.getInputVariables())
+					Thread.currentThread().getName() + "_" + controller.countRunTimes() + "_" + Arrays.toString(task.getInputVariables())
 					+ "\r\n");
 		}
 
@@ -124,19 +98,29 @@ public class EngThread extends Thread implements TaskWorker{
 
 	@Override
 	public void run() {
-		if (taskCenter == null)
-			System.err.println("Engine has not been assigned.");
+		if (taskCenter == null){
+			System.err.println("Engine not been assigned.");
+			return;
+		}
+		if (config == null){
+			System.err.println("Engine has no conf");
+			return;
+		}
+		if (controller == null){
+			System.err.println("Engine not been initiated.");
+			return;
+		}
 		goToWork(taskCenter, taskSpecified);
 	}
 
 	@Override
 	public void init() {
-		engine.loadFiles();
+		controller.init();
 	}
 
 	@Override
 	public void onDismiss() {
-		engine.close();
+		controller.close();
 	}
 
 	public EngThread assignTo(TaskCenter tc) {
@@ -153,13 +137,8 @@ public class EngThread extends Thread implements TaskWorker{
 		return this;
 	}
 
-	public EngThread setSimConductor(SimulationConductor conductor) {
-		this.conductor = conductor;
-		return this;
-	}
-
 	protected SimulationEngine getEngine() {
-		return engine;
+		return controller.getEngine();
 	}
 
 }

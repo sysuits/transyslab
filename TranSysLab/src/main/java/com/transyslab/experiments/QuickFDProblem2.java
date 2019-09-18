@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class QuickFDProblem2 extends FDProblem{
+/*public class QuickFDProblem2 extends FDProblem{}{
 	static final boolean GENERALIZE = true;
 
 	@Override
@@ -69,4 +69,4 @@ public class QuickFDProblem2 extends FDProblem{
 			}
 		};
 	}
-}
+}*/

@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class RMSEProblem extends MLPProblem {
+/*public class RMSEProblem extends BoundarySimProblem {}{
     public RMSEProblem() { }
     public RMSEProblem(String masterFileDir){
         initProblem(masterFileDir);
@@ -91,5 +91,5 @@ public class RMSEProblem extends MLPProblem {
             return null;
         }
     }
-}
+}*/
 

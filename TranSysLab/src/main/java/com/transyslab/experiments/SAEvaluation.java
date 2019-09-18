@@ -18,6 +18,7 @@ package com.transyslab.experiments;
 
 import com.transyslab.commons.io.CSVUtils;
 import com.transyslab.commons.tools.FitnessFunction;
+import com.transyslab.commons.tools.mutitask.SimController;
 import com.transyslab.commons.tools.mutitask.Task;
 import com.transyslab.commons.tools.mutitask.EngThread;
 import com.transyslab.simcore.mlp.*;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.util.*;
 
 
+/*
 public class SAEvaluation {
 	public static void main(String[] args) throws IOException {
 
@@ -139,8 +141,10 @@ public class SAEvaluation {
 								resultList.add(mksSpeed);
 
 							}
-							/* RMSE
-							 * */
+							*/
+/* RMSE
+							 * *//*
+
 							Map<String, List<MacroCharacter>> simMap = engine.getSimMap();
 							Map<String, List<MacroCharacter>> empMap = engine.getEmpMap();
 							if (simMap != null && empMap != null ) {
@@ -189,3 +193,4 @@ public class SAEvaluation {
 		runner.closeSimEngines();
 	}
 }
+*/

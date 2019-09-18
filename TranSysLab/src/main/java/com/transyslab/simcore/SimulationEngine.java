@@ -107,6 +107,8 @@ public abstract class SimulationEngine {
 
 	public abstract RoadNetwork getNetwork();
 
+	public void config(String masterFilePath){}
+
 	public abstract int repeatRun();
 
 	public abstract void close();

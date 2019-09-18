@@ -25,7 +25,7 @@ import com.transyslab.simcore.mlp.*;
 
 import java.util.*;
 
-public class KSIdvdProblem extends MLPProblem {
+/*public class KSIdvdProblem extends BoundarySimProblem {}{
     public KSIdvdProblem(){ }
     public KSIdvdProblem(String masterFileDir){
         initProblem(masterFileDir);
@@ -129,4 +129,4 @@ public class KSIdvdProblem extends MLPProblem {
             return null;
         }
     }
-}
+}*/

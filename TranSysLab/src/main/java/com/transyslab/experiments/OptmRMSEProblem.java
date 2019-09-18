@@ -30,7 +30,7 @@ import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 import java.util.Arrays;
 
 public class OptmRMSEProblem {
-    public static void main(String[] args) {
+    public static void main(String[] args) {}/*{
 
         int popSize = 20;
         int maxGeneration = 1000;
@@ -55,5 +55,5 @@ public class OptmRMSEProblem {
         System.out.println("AlgSeed: " + JMetalRandom.getInstance().getSeed());
         problem.closeProblem();
 
-    }
+    }*/
 }

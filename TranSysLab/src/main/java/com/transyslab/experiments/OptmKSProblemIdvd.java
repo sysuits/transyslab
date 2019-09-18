@@ -30,7 +30,7 @@ import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 import java.util.Arrays;
 
 public class OptmKSProblemIdvd {
-    public static void main(String[] args) {
+    public static void main(String[] args) {}/*{
         //重现校准过程
         //JMetalRandom.getInstance().setSeed(1806);
         int popSize = 20;
@@ -56,6 +56,6 @@ public class OptmKSProblemIdvd {
         System.out.println("SimSeed: " + bestSolution.getAttribute("SimSeed"));
         System.out.println("AlgSeed: " + JMetalRandom.getInstance().getSeed());
         problem.closeProblem();
-    }
+    }*/
 }
 

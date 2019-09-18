@@ -27,7 +27,7 @@ import com.transyslab.simcore.mlp.MicroCharacter;
 import java.util.List;
 
 
-public class QuickFDProblem extends FDProblem {
+/*public class QuickFDProblem extends FDProblem {}{
 	static boolean GENERALIZE = true;
 	@Override
 	protected SimulationConductor createConductor() {
@@ -59,4 +59,4 @@ public class QuickFDProblem extends FDProblem {
 			}
 		};
 	}
-}
+}*/
