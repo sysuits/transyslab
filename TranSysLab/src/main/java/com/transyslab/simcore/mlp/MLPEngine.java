@@ -52,7 +52,7 @@ public class MLPEngine extends SimulationEngine{
 	protected boolean needRndETable; //needRndETable==true,随机生成发车表，needRndETable==false，从文件读入发车表
 	protected TXTUtils loopRecWriter;
 	protected boolean rawRecOn;
-	protected TXTUtils trackWriter;
+	protected IOWriter trackWriter;
 	protected boolean trackOn;
 	protected TXTUtils infoWriter;
 	protected boolean infoOn;
@@ -378,8 +378,12 @@ public class MLPEngine extends SimulationEngine{
 				System.out.println("BUG");*/
 			if (rawRecOn)
 				loopRecWriter.flushBuffer();
-			if (trackOn)
-				trackWriter.flushBuffer();
+			if (trackOn){
+				if (trackWriter instanceof DBWriter)
+					((DBWriter) trackWriter).softFlush();
+				else
+					trackWriter.flushBuffer();
+			}
 			if (infoOn)
 				infoWriter.flushBuffer();
 			return state_ = Constants.STATE_OK;// STATE_OK宏定义
@@ -624,10 +628,14 @@ public class MLPEngine extends SimulationEngine{
 			loopRecWriter.write("DETNAME,TIME,VID,VIRTYPE,SPD,POS,LINK,LOCATION\r\n");
 		}
 		if (trackOn) {
-			trackWriter = /*new DBWriter("insert into simtrack(time, rvid, vid, virtualIdx, buff, lanePos, segment, link, displacement, speed, lead, trail, tag, create_time) " +
-					"values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")*/
-					new TXTUtils(runProperties.get("outputPath") + "/" + "track" + fileOutTag + threadName + "_" + mod + ".csv");
-			trackWriter.write("TIME,RVID,VID,VIRTUALIDX,BUFF,LANEPOS,LANEID,SEGMENT,LINK,CONNECTORID,DISPLACEMENT,SPEED,LEAD,FOLLOWER,IN_PLATOON,MILEAGE,TNODE\r\n");
+			trackWriter = config.getBoolean("saveLocally") ?
+					new TXTUtils(runProperties.get("outputPath") + "/" + "track" + fileOutTag + threadName + "_" + mod + ".csv") :
+					new DBWriter("track" + fileOutTag + threadName + "_" + mod,
+							config.getString("dburl"),
+							config.getString("username"),
+							config.getString("password"));
+			if (trackWriter instanceof TXTUtils)
+				trackWriter.write("TIME,RVID,VID,VIRTUALIDX,BUFF,LANEPOS,LANEID,SEGMENT,LINK,CONNECTORID,LR,DISPLACEMENT,SPEED,LEAD,FOLLOWER,IN_PLATOON,MILEAGE,TNODE\r\n");
 		}
 		if (infoOn)
 			infoWriter = new TXTUtils(runProperties.get("outputPath") + "/" + "info" + fileOutTag + threadName + "_" + mod + ".txt");

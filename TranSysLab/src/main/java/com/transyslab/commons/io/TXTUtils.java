@@ -20,7 +20,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 
-public class TXTUtils {
+public class TXTUtils implements IOWriter{
 	protected BufferedWriter writer;
 	
 	public TXTUtils(String filepath) {
@@ -36,6 +36,7 @@ public class TXTUtils {
 		}
 	}
 	
+	@Override
 	public synchronized void writeNFlush(String str) {
 		try {
 			writer.write(str);
@@ -45,6 +46,7 @@ public class TXTUtils {
 			e.getStackTrace();
 		}
 	}
+	@Override
 	public synchronized void write(String str) {
 		try {
 			writer.write(str);
@@ -53,6 +55,7 @@ public class TXTUtils {
 			e.getStackTrace();
 		}
 	}
+	@Override
 	public synchronized void flushBuffer() {
 		try {
 			writer.flush();
@@ -61,6 +64,7 @@ public class TXTUtils {
 			e.getStackTrace();
 		}
 	}
+	@Override
 	public void closeWriter() {
 		try {
 			writer.close();

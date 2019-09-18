@@ -88,9 +88,7 @@ public class JdbcUtils {
 		return dataSource;
 	}
 	public static Connection getConnection() throws SQLException{
-		if(dataSource == null)
-			initDataSource();
-		return dataSource .getConnection();
+		return getDataSource().getConnection();
 	}
 	public static void release(Connection con, ResultSet rs, PreparedStatement pstm) {
 		DbUtils.closeQuietly(con, pstm, rs);
