@@ -845,8 +845,6 @@ public class MLPEngine extends SimulationEngine{
 
 			while (simulationLoop()>=0) {
 				count++;
-//				engineEvent.setMsg("sim time: " + getSimClock().getCurrentTime() + " s.");
-//				informEngineListeners(engineEvent);
 			}
 
 			String msg = "runtime: " + (System.currentTimeMillis()-t0) + " ms." + "\n" +

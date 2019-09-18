@@ -473,7 +473,6 @@ public class MLPLink extends Link {
 		});
 		if (conflictExist.get()) {
 			String msg = "warning: turning conflicts at downstream of link no. " + getId();
-			System.out.println(msg);
 			((MLPNetwork)getNetwork()).broadcast(msg);
 		}
 	}

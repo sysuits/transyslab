@@ -925,7 +925,6 @@ public abstract class RoadNetwork extends SimpleDirectedWeightedGraph<Node, Link
 	public void rmLastLink(){
 		Link rmLink = links.remove(links.size()-1);
 		String msg = "info: Incomplete centerRoad no. " + rmLink.getId() + " has been removed";
-		System.out.println(msg);
 		if (this instanceof MLPNetwork)
 			((MLPNetwork)this).broadcast(msg);
 		rmLink.getUpNode().rmDnLink(rmLink);
