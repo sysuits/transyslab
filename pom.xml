@@ -6,6 +6,6 @@
 	<version>0.0.1</version>
 	<name>TranSysLab-All</name>
 	<modules>
-		<module>transyslab</module>
+		<module>TranSysLab</module>
 	</modules>
 </project>
