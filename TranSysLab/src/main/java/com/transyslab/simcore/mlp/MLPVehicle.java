@@ -17,7 +17,6 @@
 package com.transyslab.simcore.mlp;
 
 import com.transyslab.roadnetwork.*;
-import jogamp.graph.font.typecast.ot.table.VheaTable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -598,24 +597,28 @@ public class MLPVehicle extends Vehicle{
 	}
 
 	/**
-	 * get 5 columns of vehicle location reference
+	 * get 6 columns of vehicle location reference
 	 * @return
 	 */
 	public String getLocationRef(){
-		if (this.conn==null){
-			//on lane connector
-			return (lane.getLnPosNum() + "," +
-					getLane().getId() + "," +
-					segment.getId() + "," +
-					link.getId() + "," +
-					"");
+		Object[] ref = getLR();
+		if (ref[0] instanceof MLPLane){
+			MLPLane refLn = (MLPLane) ref[0];
+			return (refLn.getLnPosNum() + "," +
+					refLn.getId() + "," +
+					refLn.getSegment().getId() + "," +
+					refLn.getLink().getId() + "," +
+					"" + "," +
+					ref[1]);
 		}
 		else {
+			MLPConnector refConn = (MLPConnector) ref[0];
 			return ("" + "," +
 					"" + "," +
 					"" + "," +
 					"" + "," +
-					conn.getId());
+					refConn.getId() + "," +
+					ref[1]);
 		}
 	}
 
@@ -625,5 +628,69 @@ public class MLPVehicle extends Vehicle{
 
 	public double getPCU(){
 		return VehicleType.getType(this.getType()).pcu;
+	}
+
+	public Object[] getLR(){
+		if (conn==null){
+			double l0 = segment.getLength();
+			double lr = Math.max(0.0,l0-getDistance()) / l0;
+			double l1 = lane.getGeoLength();
+			if (!segment.isEndSeg()){
+				if (link.getUpNode().type(Constants.NODE_TYPE_INTERSECTION)==0 &&
+						segment.isStartSeg() &&
+						getPath().index()>1) {
+					MLPConnector conn_ = lane.upStrmConns.stream().filter(c->c.upLane.getId()==shownUpLane.getId()).findFirst().orElse(null);
+					double l_ = conn_.getLength();
+
+					MLPConnector dnConn = findDnConn();
+					double l2 = dnConn.getLength();
+
+					double cr1 = l_ / (l_+l1+l2);
+					double cr2 = (l_+l1) / (l_+l1+l2);
+					if (lr<=cr1)
+						return new Object[]{conn_, Math.min(l_-1e-5,lr*(l_+l1+l2))};
+					else if (lr<=cr2)
+						return new Object[]{lane, Math.min(l1-1e-5,lr*(l_+l1+l2)-l_)};
+					else
+						return new Object[]{dnConn, Math.min(l2-1e-5,lr*(l_+l1+l2)-l_-l1)};
+				}
+				else {
+					//on the road
+					//find the connector
+					MLPConnector dnConn = findDnConn();
+					double l2 = dnConn.getLength();
+					double cr = l1 / (l1+l2);
+					if (lr<=cr)
+						return new Object[]{lane, Math.min(l1-1e-5,lr*(l1+l2))};
+					else
+						return new Object[]{conn, Math.min(l2-1e-5,lr*(l1+l2)-l1)};
+				}
+			}
+			else {
+				if (link.getDnNode().type(Constants.NODE_TYPE_INTERSECTION)==0) {
+
+				}
+				else
+					return new Object[]{lane, Math.min(l1-1e-5,lr*l1)};
+			}
+
+		}
+		//in an intersection
+		return new Object[]{conn, Math.min(conn.getLength()-1e-5,conn.getLength()-getDistance())};
+	}
+
+	private MLPConnector findDnConn(){
+		int sDnLaneNum = lane.successiveDnLanes.size();
+		MLPLane successiveDnLane = lane.dnStrmConns.size()==1 ?
+				(MLPLane) lane.dnLane(0) :
+				sDnLaneNum==1 ?
+						lane.successiveDnLanes.get(0) :
+						null;
+		if (successiveDnLane==null)
+			System.err.println("wrong successiveDnNum");
+		MLPConnector conn = lane.dnStrmConns.stream().filter(c->c.dnLane.equals(successiveDnLane)).findFirst().orElse(null);
+		if (conn==null)
+			System.err.println("can not find a conn");
+		return conn;
 	}
 }

@@ -442,75 +442,8 @@ public class MLPNetwork extends RoadNetwork {
 //		vd.setPathInfo(veh.getPath());
 		//todo: 过渡方案
 		//计算翻译线性参考
-		if (veh.conn==null){
-			double l0 = veh.segment.getLength();
-			double lr = Math.max(0.0,l0-veh.getDistance()) / l0;
-			double l1 = veh.lane.getGeoLength();
-			if (!veh.segment.isEndSeg()){
-				if (veh.link.getUpNode().type(Constants.NODE_TYPE_INTERSECTION)==0 &&
-						veh.segment.isStartSeg() &&
-						veh.getPath().index()>1) {
-					MLPConnector conn_ = veh.lane.upStrmConns.stream().filter(c->c.upLane.getId()==veh.shownUpLane.getId()).findFirst().orElse(null);
-					double l_ = conn_.getLength();
-
-					int sDnLaneNum = veh.lane.successiveDnLanes.size();
-					MLPLane successiveDnLane = veh.lane.dnStrmConns.size()==1 ?
-							(MLPLane) veh.lane.dnLane(0) :
-							sDnLaneNum==1 ?
-									veh.lane.successiveDnLanes.get(0) :
-									null;
-					if (successiveDnLane==null)
-						System.err.println("wrong successiveDnNum");
-					MLPConnector conn = (MLPConnector) veh.lane.dnStrmConns.stream().filter(c->c.dnLane.equals(successiveDnLane)).findFirst().orElse(null);
-					if (conn==null)
-						System.err.println("can not find a conn");
-					double l2 = conn.getLength();
-
-					double cr1 = l_ / (l_+l1+l2);
-					double cr2 = (l_+l1) / (l_+l1+l2);
-					if (lr<=cr1)
-						vd.init(String.valueOf(veh.getId()), conn_, veh.getLength(), Math.min(l_-1e-5,lr*(l_+l1+l2)), veh.getCurrentSpeed(),"B", Math.abs(veh.getCurrentSpeed())<1.0/3.6, true);
-					else if (lr<=cr2)
-						vd.init(String.valueOf(veh.getId()), veh.lane, veh.getLength(), Math.min(l1-1e-5,lr*(l_+l1+l2)-l_), veh.getCurrentSpeed(),"B", Math.abs(veh.getCurrentSpeed())<1.0/3.6, true);
-					else
-						vd.init(String.valueOf(veh.getId()), conn, veh.getLength(), Math.min(l2-1e-5,lr*(l_+l1+l2)-l_-l1), veh.getCurrentSpeed(),"B", Math.abs(veh.getCurrentSpeed())<1.0/3.6, true);
-				}
-				else {
-					//on the road
-					//find the connector
-					int sDnLaneNum = veh.lane.successiveDnLanes.size();
-					MLPLane successiveDnLane = veh.lane.dnStrmConns.size()==1 ?
-							(MLPLane) veh.lane.dnLane(0) :
-							sDnLaneNum==1 ?
-									veh.lane.successiveDnLanes.get(0) :
-									null;
-					if (successiveDnLane==null)
-						System.err.println("wrong successiveDnNum");
-					MLPConnector conn = (MLPConnector) veh.lane.dnStrmConns.stream().filter(c->c.dnLane.equals(successiveDnLane)).findFirst().orElse(null);
-					if (conn==null)
-						System.err.println("can not find a conn");
-
-					double l2 = conn.getLength();
-					double cr = l1 / (l1+l2);
-					if (lr<=cr)
-						vd.init(String.valueOf(veh.getId()), veh.lane, veh.getLength(), Math.min(l1-1e-5,lr*(l1+l2)), veh.getCurrentSpeed(),"B", Math.abs(veh.getCurrentSpeed())<1.0/3.6, true);
-					else
-						vd.init(String.valueOf(veh.getId()), conn, veh.getLength(), Math.min(l2-1e-5,lr*(l1+l2)-l1), veh.getCurrentSpeed(),"B", Math.abs(veh.getCurrentSpeed())<1.0/3.6, true);
-				}
-			}
-			else {
-				if (veh.link.getDnNode().type(Constants.NODE_TYPE_INTERSECTION)==0) {
-
-				}
-				else
-					vd.init(String.valueOf(veh.getId()), veh.lane, veh.getLength(), Math.min(l1-1e-5,lr*l1), veh.getCurrentSpeed(),"B", Math.abs(veh.getCurrentSpeed())<1.0/3.6, true);
-			}
-
-		}
-		else {
-			//in an intersection
-			vd.init(String.valueOf(veh.getId()), veh.conn, veh.getLength(), Math.min(veh.conn.getLength()-1e-5,veh.conn.getLength()-veh.getDistance()), veh.getCurrentSpeed(),"B", Math.abs(veh.getCurrentSpeed())<1.0/3.6, true);
-		}
+		Object[] lrOjb = veh.getLR();
+		vd.init(String.valueOf(veh.getId()), lrOjb[0], veh.getLength(), (double) lrOjb[1], veh.getCurrentSpeed(),"B", Math.abs(veh.getCurrentSpeed())<1.0/3.6, true);
 	}
 	
 	public void recordVehicleData(){
