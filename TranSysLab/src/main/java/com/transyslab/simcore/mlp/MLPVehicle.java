@@ -663,7 +663,7 @@ public class MLPVehicle extends Vehicle{
 					if (lr<=cr)
 						return new Object[]{lane, Math.min(l1-1e-5,lr*(l1+l2))};
 					else
-						return new Object[]{conn, Math.min(l2-1e-5,lr*(l1+l2)-l1)};
+						return new Object[]{dnConn, Math.min(l2-1e-5,lr*(l1+l2)-l1)};
 				}
 			}
 			else {
