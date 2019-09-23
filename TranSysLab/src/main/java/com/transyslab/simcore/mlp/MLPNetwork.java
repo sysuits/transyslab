@@ -847,7 +847,7 @@ public class MLPNetwork extends RoadNetwork {
 	}
 
 	public void writeStat2Db(String tag, LocalDateTime dt) {
-		DBWriter loopWriter = new DBWriter("insert into simloop(det, time_period, flow, speed, density, travel_time, tag, create_time) values(?,?,?,?,?,?,?,?)");
+		DBUploader loopWriter = new DBUploader("insert into simloop(det, time_period, flow, speed, density, travel_time, tag, create_time) values(?,?,?,?,?,?,?,?)");
 		sectionStatMap.forEach((k,v) -> {
 			String det = k;
 			for (int i = 0; i<v.size(); i++) {
