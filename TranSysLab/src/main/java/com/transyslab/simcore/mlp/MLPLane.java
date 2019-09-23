@@ -517,14 +517,26 @@ public class MLPLane extends Lane implements Comparator<MLPLane>{
 			GeoPoint ep = fp.add(laneDirVector.times(6.0));
 
 			//determine turning direction
-			double torlerantAngle = Math.PI * 20.0 / 180.0;//20 degree
+			double torlerantAngle = Math.PI * 45.0 / 180.0;//20 degree
 			double torlerance = Math.sin(torlerantAngle);
-			idx = conn.getShapePoints().size() - 1;
-			GeoPoint turnDirVector = fp.derectionVector(conn.getShapePoints().get(idx));
-			double crossProduct = laneDirVector.cross(turnDirVector);
-			String dir = crossProduct > torlerance ? "L" :
-					crossProduct < -torlerance ? "R" :
-							"S";
+
+			MLPLane dnLane = conn.dnLane;
+			GeoPoint tLaneDirVector =  dnLane.getCtrlPoints().get(0).derectionVector(dnLane.getCtrlPoints().get(1));
+
+			double crossProduct = laneDirVector.cross(tLaneDirVector);
+			double dotProduct = laneDirVector.dot(tLaneDirVector);
+
+			String dir;
+			if (dotProduct<0)
+//				dir = crossProduct >= 0 ? "L" : "R";// left or right u turn included
+				dir = crossProduct > torlerance ? "L" :
+						crossProduct < -torlerance ? "R" :
+								crossProduct >= 0 ? "L" : //indicating left U turn
+								"R";//indicating right U turn
+			else
+				dir = crossProduct > torlerance ? "L" :
+						crossProduct < -torlerance ? "R" :
+								"S";
 
 			SignalArrow arrow = new SignalArrow(0,0,fp,ep,dir);
 			arrow.setReferConn(conn);
@@ -540,5 +552,13 @@ public class MLPLane extends Lane implements Comparator<MLPLane>{
 
 	public GeoPoint getFirstCtlPoint(){
 		return this.ctrlPoints.get(0);
+	}
+
+	public List<MLPConnector> dnStrmConns(){
+		return dnStrmConns;
+	}
+
+	public List<MLPConnector> upStrmConns(){
+		return upStrmConns;
 	}
 }
