@@ -16,7 +16,6 @@
 
 package com.transyslab.simcore.mlp;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.SQLException;
@@ -210,7 +209,7 @@ public class MLPEngine extends SimulationEngine{
 			mlpNetwork.renewSysRandSeed();
 			mlpNetwork.resetReleaseTime();
 			updateTime_ = now + ((MLPParameter) mlpNetwork.getSimParameter()).updateStepSize_;
-			if (config.getBoolean("engineBroadcast")){
+			if (broadcasting()){
 				double num = mlpNetwork.veh_list.size();
 				String msg = "info: time " + now
 						+ " agent counts: " + num
@@ -845,7 +844,7 @@ public class MLPEngine extends SimulationEngine{
 	 */
 	@Override
 	public void run() {
-		if (config.getBoolean("engineBroadcast")||config.getBoolean("engineEndingBroadcast")) {
+		if (broadcasting()||config.getBoolean("engineEndingBroadcast")) {
 			double count = 0.0;
 			long t0 = System.currentTimeMillis();
 
@@ -1063,5 +1062,9 @@ public class MLPEngine extends SimulationEngine{
 		EngineEvent e = new EngineEvent(this, EngineEvent.BROADCAST);
 		e.setMsg(msg);
 		informEngineListeners(e);
+	}
+
+	public boolean broadcasting(){
+		return config.getBoolean("engineBroadcast");
 	}
 }

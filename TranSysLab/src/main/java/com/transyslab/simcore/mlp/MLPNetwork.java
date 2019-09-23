@@ -200,7 +200,6 @@ public class MLPNetwork extends RoadNetwork {
 			((MLPLink) l).organizeTurnableDnLinks();
 			counter.update();
 			String msg = "info: link " + l.getId() + " constructed " + counter.currentNum() + " / " + links.size();
-			System.out.println(msg);
 			broadcast(msg);
 		});
 		allDirectedPaths = new AllDirectedPaths(this);
@@ -984,7 +983,10 @@ public class MLPNetwork extends RoadNetwork {
 	}
 
 	public void broadcast(String msg){
-		mlpEngine.broadcast(msg);
+		if (mlpEngine.broadcasting()){
+			System.out.println(msg);
+			mlpEngine.broadcast(msg);
+		}
 	}
 
 }
