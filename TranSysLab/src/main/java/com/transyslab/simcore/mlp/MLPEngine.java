@@ -25,6 +25,7 @@ import java.util.*;
 
 import com.transyslab.commons.io.*;
 import com.transyslab.gui.EngineEvent;
+import com.transyslab.roadnetwork.Node;
 import com.transyslab.roadnetwork.SignalPlan;
 import com.transyslab.roadnetwork.SignalStage;
 import org.apache.commons.configuration2.Configuration;
