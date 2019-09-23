@@ -6,6 +6,11 @@
 	<name>TranSysLab</name>
 	<dependencies>
 		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>4.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.jogamp.jogl</groupId>
 			<artifactId>jogl-all-main</artifactId>
 			<version>2.3.2</version>
@@ -120,6 +125,11 @@
 			<groupId>org.osgeo</groupId>
 			<artifactId>proj4j</artifactId>
 			<version>0.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.aparapi</groupId>
+			<artifactId>aparapi</artifactId>
+			<version>1.10.0</version>
 		</dependency>
 	</dependencies>
 	<build>
