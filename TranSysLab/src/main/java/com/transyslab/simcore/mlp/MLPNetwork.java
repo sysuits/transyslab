@@ -691,7 +691,7 @@ public class MLPNetwork extends RoadNetwork {
 			double emitTime = 0.0;
 			while ((readLine = bReader.readLine()) != null && emitTime <= tTime) {
 				String[] items = readLine.split(",");
-				emitTime = LocalTime.parse(items[2], DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toSecondOfDay();
+				emitTime = getSimClock().parseTime(items[2]);
 				long LNID = Long.parseLong(items[0]);
 				if (theLNID != LNID) {
 					MLPLane theLN = (MLPLane) findLane(LNID);

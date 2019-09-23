@@ -285,7 +285,7 @@ public class MainWindow {
 //                                    config.getString("timeStep") + " : " +
 //                                    config.getString("timeEnd") + "\n");
 
-                            double sTime = LocalTime.parse(config.getString("timeStart"),DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss")).toSecondOfDay();
+                            int sTime = LocalTime.parse(config.getString("timeStart"),SimulationClock.DATETIME_FORMAT).toSecondOfDay();
                             updateSlider((long)sTime);
                             canvas.setSliderFTime(sTime);
                             if(modelType.equals("MesoTS")) {

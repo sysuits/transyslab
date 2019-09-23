@@ -69,10 +69,6 @@ public class MLPEngine extends SimulationEngine{
 
 	//引擎运行输入文件配置
 	private HashMap<String,String> runProperties;
-	//引擎运行时间设置信息
-	private double timeStart;
-	private double timeEnd;
-	private double timeStep;
 	//引擎运行参数
 	private int repeatTimes;
 
@@ -140,13 +136,6 @@ public class MLPEngine extends SimulationEngine{
 			runProperties.put("emitSource", rootDir + config.getString("emitSource"));
 		else
 			runProperties.put("emitSource", config.getString("emitSource"));
-
-		//time setting
-//		timeStart = Double.parseDouble(config.getString("timeStart"));
-//		timeEnd = Double.parseDouble(config.getString("timeEnd"));
-		timeStart = LocalTime.parse(config.getString("timeStart"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toSecondOfDay();
-		timeEnd = LocalTime.parse(config.getString("timeEnd"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toSecondOfDay();
-		timeStep = Double.parseDouble(config.getString("timeStep"));
 
 		//the value will be false if config.getString() returns null
 		needRndETable = Boolean.parseBoolean(config.getString("needRndETable"));
@@ -465,8 +454,8 @@ public class MLPEngine extends SimulationEngine{
 				long nid = Long.parseLong(results.get(i).get("NODEID"));
 				long flid = Long.parseLong(results.get(i).get("FLID"));
 				long tlid = Long.parseLong(results.get(i).get("TLID"));
-				LocalTime stime = LocalTime.parse(results.get(i).get("FTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-				LocalTime etime = LocalTime.parse(results.get(i).get("TTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				double stime = getSimClock().parseTime(results.get(i).get("FTIME"));
+				double etime = getSimClock().parseTime(results.get(i).get("TTIME"));
 				MLPNode node = (MLPNode) mlpNetwork.findNode(nid);
 				if (node==null)
 					continue;
@@ -476,7 +465,7 @@ public class MLPEngine extends SimulationEngine{
 					scheduler = new ArrayList<>();
 					node.signalTable.put(flid+"_"+tlid,scheduler);
 				}
-				scheduler.add(new double[]{stime.toSecondOfDay(),etime.toSecondOfDay()});
+				scheduler.add(new double[]{stime,etime});
 			}
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -494,13 +483,11 @@ public class MLPEngine extends SimulationEngine{
 			for (int i = 1; i < results.size(); i++) {
 				Long nodeId = Long.parseLong(results.get(i).get("NODEID"));
 				int planId = Integer.parseInt(results.get(i).get("PLANID"));
-				LocalTime stime = LocalTime.parse(results.get(i).get("FTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-				LocalTime etime = LocalTime.parse(results.get(i).get("TTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				double stime = getSimClock().parseTime(results.get(i).get("FTIME"));
+				double etime = getSimClock().parseTime(results.get(i).get("TTIME"));
 				int stageId = Integer.parseInt(results.get(i).get("STAGEID"));
 				String[] ftLIds = results.get(i).get("FTLIDS").split("#");
 				String timeSerialStr = results.get(i).get("TIMESERIAL");
-				double ft = stime.toSecondOfDay();
-				double tt = etime.toSecondOfDay();
 				if (sNode == null || sNode.getId() != nodeId) {
 					sNode = getNetwork().findNode(nodeId);
 					//todo: log here, some node may change to signalized intersection
@@ -510,8 +497,8 @@ public class MLPEngine extends SimulationEngine{
 				if (plan == null || plan.getId() != planId) {
 					plan = new SignalPlan(planId);
 					plan.isAdaptive = true;
-					plan.setFTime(ft);
-					plan.setTTime(tt);
+					plan.setFTime(stime);
+					plan.setTTime(etime);
 					sNode.addSignalPlan(plan);
 					stage = null;
 				}
@@ -588,9 +575,10 @@ public class MLPEngine extends SimulationEngine{
 	}
 
 	private void initEngine(){
+		double timeStep = config.getDouble("timeStep");
 		getSimParameter().setSimStepSize(timeStep);
 		SimulationClock clock = mlpNetwork.getSimClock();
-		clock.init(timeStart, timeEnd, timeStep);
+		clock.init(config.getString("timeStart"), config.getString("timeEnd"), timeStep);
 
 		//applying
 		((MLPParameter) mlpNetwork.getSimParameter()).setLCDStepSize(Double.parseDouble(runProperties.get("lcdStepSize")));

@@ -140,14 +140,12 @@ public abstract class SimulationEngine {
 				int stageId = Integer.parseInt(results.get(i).get("STAGEID"));
 				int flid = Integer.parseInt(results.get(i).get("FLID"));
 				int tlid = Integer.parseInt(results.get(i).get("TLID"));
-				LocalTime stime = LocalTime.parse(results.get(i).get("FTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-				LocalTime etime = LocalTime.parse(results.get(i).get("TTIME"),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				double stime = getNetwork().getSimClock().parseTime(results.get(i).get("FTIME"));
+				double etime = getNetwork().getSimClock().parseTime(results.get(i).get("TTIME"));
 				String turnInfo = results.get(i).get("TURN");
 				if ((turnInfo==null || turnInfo.equals("")) && this instanceof MLPEngine){
 					turnInfo = ((MLPLink)getNetwork().findLink(flid)).getLinkDir() + "_" +  ((MLPNode)getNetwork().findNode(nodeId)).findTurningString((long)flid,(long)tlid);
 				}
-				double ft = stime.toSecondOfDay();
-				double tt = etime.toSecondOfDay();
 				if (sNode == null || sNode.getId() != nodeId) {
 					sNode = getNetwork().findNode(nodeId);
 					//todo: log here, some node may change to signalized intersection
@@ -156,13 +154,13 @@ public abstract class SimulationEngine {
 				}
 				if (plan == null || plan.getId() != planId) {
 					plan = new SignalPlan(planId);
-					plan.setFTime(ft);
+					plan.setFTime(stime);
 					sNode.addSignalPlan(plan);
 					stage = null;
 				}
 				if (stage == null || stage.getId() != stageId) {
-					plan.setTTime(tt);
-					plan.addSignalRow(stageId,ft,tt);
+					plan.setTTime(etime);
+					plan.addSignalRow(stageId,stime,etime);
 					stage = plan.findStage(stageId);
 					if (stage == null) {
 						stage = new SignalStage(stageId);

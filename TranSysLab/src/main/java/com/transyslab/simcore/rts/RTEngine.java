@@ -82,10 +82,8 @@ public class RTEngine extends SimulationEngine{
 		runProperties.put("extVhcPath", tmp==null || tmp.equals("") ? null : rootDir + tmp);
 		runProperties.put("signalPlan", rootDir + config.getString("signalPlan"));
 		//time setting
-		LocalTime stime = LocalTime.parse(config.getString("timeStart"),DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss"));
-		LocalTime etime = LocalTime.parse(config.getString("timeEnd"),DateTimeFormatter.ofPattern("YYYY-MM-DD HH:mm:ss"));
-		timeStart = stime.toSecondOfDay();
-		timeEnd = etime.toSecondOfDay();
+		timeStart = getNetwork().getSimClock().parseTime(config.getString("timeStart"));
+		timeEnd = getNetwork().getSimClock().parseTime(config.getString("timeEnd"));
 
 		timeStep = Double.parseDouble(config.getString("timeStep"));
 

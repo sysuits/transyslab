@@ -16,6 +16,12 @@
 
 package com.transyslab.commons.tools;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.HashMap;
 import java.util.TimeZone;
 
@@ -25,6 +31,9 @@ public class SimulationClock {
 	private static long baseTime; // time of 00:00:00AM today
 	private static long localTime; // current local clock time
 
+	public static final DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+	private LocalDateTime zeroTime;
 	private double startTime; // simulation start time
 	private double stopTime; // simulation stop time
 	private double simulationTime; // total simultion time
@@ -36,6 +45,7 @@ public class SimulationClock {
 		masterTime = 86400.0;
 		/*startTime = 12 * 3600f;
 		stopTime = 14 * 3600 + 50 * 60f;*/
+		zeroTime = LocalDateTime.MIN;
 		startTime = Double.NaN;
 		stopTime = Double.NaN;
 		stepSize = Double.NaN;
@@ -50,6 +60,7 @@ public class SimulationClock {
 	{
 		setBaseTime();
 
+		zeroTime = LocalDateTime.now().with(LocalTime.MIN);
 		if (start > stop || step < 0.0) {
 			return 1;
 		}
@@ -64,6 +75,55 @@ public class SimulationClock {
 //------------易引起歧义，已废除-------------
 
 		return 0;
+	}
+
+	public static void main(String[] args) {
+		System.out.println(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
+		System.out.println(LocalDateTime.now().with(LocalTime.MIN).until(LocalDateTime.now(),ChronoUnit.SECONDS));
+		System.out.println(LocalDateTime.now().with(LocalTime.MIN).until(LocalDateTime.now(),ChronoUnit.MILLIS));
+		System.out.println(LocalDateTime.now().with(LocalTime.MIN).until(LocalDateTime.now(),ChronoUnit.MILLIS) / 1000.0);
+		System.out.println((double)LocalDateTime.now().with(LocalTime.MIN).until(LocalDateTime.now(),ChronoUnit.MILLIS) / 1000.0);
+	}
+
+	public int init(LocalDateTime start, LocalDateTime stop, double step)// 1.0
+	{
+		zeroTime = start.with(LocalTime.MIN);
+		double startTime = zeroTime.until(start,ChronoUnit.MILLIS) / 1000.0;
+		double stopTime = zeroTime.until(stop,ChronoUnit.MILLIS) / 1000.0;
+		init(startTime,stopTime,step);
+		return 0;
+	}
+
+	public int init(String startStr, String stopStr, double stepStr){
+		if (startStr.contains(":") && stopStr.contains(":"))
+			return init(
+					LocalDateTime.parse(startStr,DATETIME_FORMAT),
+					LocalDateTime.parse(stopStr,DATETIME_FORMAT),
+					stepStr);
+		if ((!startStr.contains(":")) && (!startStr.contains(":")))
+			return init(
+					Double.parseDouble(startStr),
+					Double.parseDouble(stopStr),
+					stepStr);
+		return -1;
+	}
+
+	public double parseTime(String timeStr){
+		if (timeStr.contains(":")){
+			LocalDateTime time = LocalDateTime.parse(timeStr,DATETIME_FORMAT);
+			return secondsUntil(time);
+		}
+		else {
+			return Double.parseDouble(timeStr);
+		}
+	}
+
+	public double secondsUntil(LocalDateTime toTime){
+		return zeroTime.until(toTime, ChronoUnit.MILLIS) / 1000.0;
+	}
+
+	public LocalDateTime getCurrentLocalDateTime(){
+		return zeroTime.plus((long)(currentTime*1000), ChronoUnit.MILLIS);
 	}
 
 	//wym 重设随start/stoptime改变的时间参数
