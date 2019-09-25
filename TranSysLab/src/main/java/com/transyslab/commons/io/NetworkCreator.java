@@ -293,8 +293,8 @@ public class NetworkCreator {
         List<Lane> lanesInSgmt = new ArrayList<>();
         // 遍历Lane数据
         for (Object[] laneRow : laneFiltered) {
-            long laneid = ((Long) laneRow[0]).longValue();
-            int orderNum = ((Integer) laneRow[1]).intValue();
+            long laneid = obj2Long(laneRow[0]);
+            int orderNum = (int) obj2Long(laneRow[1]);
             double width;
             if (laneRow[2] == null)
                 width = 3.75;
@@ -397,8 +397,7 @@ public class NetworkCreator {
                 long numOfSamePoints= ctrlPoints.stream().filter(pnt->pnt.equal(gPoint)).count();
                 if(numOfSamePoints>=1)
                     System.out.println("Warning: " + networkObjInfo + "存在" + numOfSamePoints + "个重复顶点");
-                else
-                    ctrlPoints.add(gPoint);
+                ctrlPoints.add(gPoint);
             }
         }
         return ctrlPoints;
@@ -410,8 +409,18 @@ public class NetworkCreator {
             return ((BigDecimal) obj).longValue();
         if (obj instanceof Long)
             return ((Long) obj).longValue();
-        if (obj instanceof String)
+        if (obj instanceof String){
+            String objStr = ((String) obj).replace(":","");
+            if (objStr.contains("_")){
+                String[] tmp = objStr.split("_");
+                long ans = 0;
+                for (int i = 0; i < tmp.length; i++) {
+                    ans += Long.parseLong(tmp[i])*Math.pow(100,tmp.length-1-i);
+                }
+                return ans;
+            }
             return Long.parseLong((String)obj);
+        }
         if (obj instanceof Integer)
             return (int) obj;
         System.err.println("unsolved data type of object " + obj.toString());
