@@ -47,7 +47,8 @@ public class MLPVehicle extends Vehicle{
 //	static public TXTUtils fout = new TXTUtils("src/main/resources/output/test.csv");
 //	protected double TimeExit;
 	//private boolean active_;
-
+	private String license;
+	private String licenseType;
 	//wym !!parameter在回收过程中不需要重置
 	protected MLPParameter mlpParameter;
 
@@ -299,6 +300,11 @@ public class MLPVehicle extends Vehicle{
 	     distance = dis;
 	     currentSpeed = speed;
 	 }
+	public void init(int id, double len, double dis, double speed, String license, String licenseType){
+		init(id,len,dis,speed);
+		this.license = license;
+		this.licenseType = licenseType;
+	}
 	
 	public int updateMove() {
 //		if ( Math.abs(getDistance - newDis - newSpeed*SimulationClock.getInstance().getStepSize()) > 0.001 )
@@ -434,6 +440,8 @@ public class MLPVehicle extends Vehicle{
 		donePathIndex();
 //		TimeExit = 0.0;
 		diMap.clear();
+		license = null;
+		licenseType = null;
 	}
 	
 	public void updateUsage() {
@@ -693,4 +701,11 @@ public class MLPVehicle extends Vehicle{
 			System.err.println("can not find a conn");
 		return conn;
 	}
+
+    public String getLicense() {
+        return license;
+    }
+    public String getLicenseType(){
+	    return licenseType;
+    }
 }
