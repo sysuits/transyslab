@@ -123,7 +123,15 @@ public class SimulationClock {
 	}
 
 	public LocalDateTime getCurrentLocalDateTime(){
-		return zeroTime.plus((long)(currentTime*1000), ChronoUnit.MILLIS);
+		return format(currentTime);
+	}
+
+	public LocalDateTime format(double time){
+		return zeroTime.plus((long)(time*1000), ChronoUnit.MILLIS);
+	}
+
+	public LocalDateTime parseFormalTime(String timeStr){
+		return format(parseTime(timeStr));
 	}
 
 	//wym 重设随start/stoptime改变的时间参数
