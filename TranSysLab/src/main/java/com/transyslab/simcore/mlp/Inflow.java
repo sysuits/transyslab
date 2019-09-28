@@ -15,18 +15,38 @@
  */
 
 package com.transyslab.simcore.mlp;
-
+import com.transyslab.roadnetwork.Link;
+import java.util.List;
 import com.transyslab.roadnetwork.Constants;
 
 public class Inflow {
 	public double time;
 	public double speed; // unit m/s
-	public int laneIdx; 
+	public int laneIdx;
 	public long tLinkID;
 	public double dis;
 	public int realVID;
 	public int vehClassType;
-	
+	private List<Link> path;
+	public String license;
+	public String licenseType;
+
+	public Inflow(double[] row, MLPNetwork mlpNetwork){
+		if (row.length != 5) {
+			System.err.println("length not match");
+			return;
+		}
+		time = row[0];
+		speed = row[1];
+		int laneID = (int) row[2];
+		laneIdx = mlpNetwork.findLane(laneID).getIndex();
+		tLinkID = (int) row[3];
+		if ( row[4] < 0.0)
+			dis = mlpNetwork.mlpLane(laneIdx).getLength();
+		else
+			dis = row[4];
+	}
+
 	public Inflow(double time, double speed, int laneIdx, long tLinkID, double dis){
 		this.time = time;
 		this.speed = speed;
@@ -46,4 +66,22 @@ public class Inflow {
 		return this;
 	}
 
+	public Inflow(double time, double speed, int laneIdx, long tLinkID, double dis, String license,
+				  String licenseType){
+		this(time, speed, laneIdx, tLinkID, dis);
+		this.license = license;
+		this.licenseType = licenseType;
+	}
+
+	public Inflow(double time, double speed, int laneIdx, long tLinkID, double dis, int realVID,
+				  List<Link> path,String license, String licenseType){
+		this(time, speed, laneIdx, tLinkID, dis, realVID);
+		this.path = path;
+		this.license = license;
+		this.licenseType = licenseType;
+	}
+
+	public List<Link> getPath(){
+		return this.path;
+	}
 }

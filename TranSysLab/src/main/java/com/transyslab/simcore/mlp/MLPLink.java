@@ -370,6 +370,13 @@ public class MLPLink extends Link {
 		Inflow theinflow = new Inflow(time, speed, laneIdx, tLinkID, dis2, realVID);
 		inflowList.offer(theinflow);
 	}
+	protected void appendIndentityInflow(long laneId, long tLinkID, double time, double speed, double dis, int realVID,
+										 List<Link> path,String license, String licenseType){
+		Lane inLane = getNetwork().findLane(laneId);
+		double dis2 = dis < 0.0 ? inLane.getLength() : dis;
+		Inflow theflow = new Inflow(time,speed, inLane.getIndex(), tLinkID,dis2,realVID,path,license,licenseType);
+		inflowList.offer(theflow);
+	}
 
 	protected LinkedList<Inflow> getInflow() {
 		return inflowList;

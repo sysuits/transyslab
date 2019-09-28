@@ -246,6 +246,9 @@ public abstract class RoadNetwork extends SimpleDirectedWeightedGraph<Node, Link
 	public Link findLink(long id) {
 		return links.stream().filter(l ->l.getId() == id).findFirst().orElse(null);
 	}
+	public Link findLink(long fnid,long tnid) {
+		return links.stream().filter(l->l.getUpNode().getId() == fnid && l.getDnNode().getId() == tnid).findFirst().orElse(null);
+	}
 	public Segment findSegment(long id){
 		return segments.stream().filter(s -> s.getId() == id).findFirst().orElse(null);
 	}

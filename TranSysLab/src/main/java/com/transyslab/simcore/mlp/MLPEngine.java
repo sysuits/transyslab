@@ -19,6 +19,7 @@ package com.transyslab.simcore.mlp;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -220,16 +221,25 @@ public class MLPEngine extends SimulationEngine{
 
 		if (now >= loadTime) {
 			double loadTimeStep = 3600 * 12;
+			double loadTimeEnd = Math.min(loadTime+loadTimeStep, getSimClock().getStopTime());
 			String sourceType = runProperties.get("emitSourceType");
 			if (needRndETable) {
 				//TODO: 未完成从数据库随机发车
-				mlpNetwork.genInflowFromFile(runProperties.get("emitSource"), loadTime + loadTimeStep);
+				mlpNetwork.genInflowFromFile(runProperties.get("emitSource"), loadTimeEnd);
 			}
 			else {
 				if (sourceType.equals("SQL"))
-					mlpNetwork.loadInflowFromSQL(runProperties.get("emitSource"), loadTime, loadTime + loadTimeStep);
+					mlpNetwork.loadInflowFromSQL(runProperties.get("emitSource"), loadTime, loadTimeEnd);
 				else if (sourceType.equals("FILE"))
-					mlpNetwork.loadInflowFromFile(runProperties.get("emitSource"), loadTime + loadTimeStep);
+					mlpNetwork.loadInflowFromFile(runProperties.get("emitSource"), loadTimeEnd);
+				else if (sourceType.contains("TripPath")) {
+					String fileName = sourceType.contains("FILE") ?
+							runProperties.get("emitSource") :
+							null;
+					LocalDateTime fromTime = getSimClock().format(loadTime);
+					LocalDateTime toTime = getSimClock().format(loadTimeEnd);
+					mlpNetwork.loadInflowFromTripPathRec(fromTime,toTime,config.getString("nodes2Construct"),fileName);
+				}
 			}
 			loadTime += loadTimeStep;
 //			System.out.println(Thread.currentThread().getName() + " loading day " + now/3600/24 );

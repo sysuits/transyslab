@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 import com.transyslab.commons.io.*;
 import com.transyslab.commons.renderer.AnimationFrame;
 import com.transyslab.commons.renderer.FrameQueue;
+import com.transyslab.commons.tools.CoordTransformUtils;
+import com.transyslab.commons.tools.GeoUtil;
 import com.transyslab.commons.tools.SyncCounter;
 import com.transyslab.roadnetwork.*;
 import org.apache.commons.csv.CSVRecord;
@@ -244,10 +246,16 @@ public class MLPNetwork extends RoadNetwork {
 				newVeh.initInfo(0,launchingLink,mlpLane(emitVeh.laneIdx).getSegment(),mlpLane(emitVeh.laneIdx),emitVeh.realVID);
 				MLPVehicle last = mlpLane(emitVeh.laneIdx).getTail();
 				double validDis = last==null ? emitVeh.dis : Math.max(last.getDistance()+last.getLength()+((MLPParameter)getSimParameter()).minGap(0.0),emitVeh.dis);
-				newVeh.init(getNewVehID(), VehicleType.getType(emitVeh.vehClassType).length, (float) validDis, (float) emitVeh.speed);
+				newVeh.init(getNewVehID(), VehicleType.getType(emitVeh.vehClassType).length, (float) validDis, (float) emitVeh.speed,emitVeh.license,emitVeh.licenseType);
 				MLPNode upNode = (MLPNode) launchingLink.getUpNode();
 				MLPNode dnNode = emitVeh.tLinkID==0 ? null : (MLPNode) findLink(emitVeh.tLinkID).getDnNode();
-				assignPath(newVeh, upNode, dnNode, false);
+				List<Link> pathRec = emitVeh.getPath();
+				if (pathRec==null)
+					assignPath(newVeh, upNode, dnNode, false);
+				else {
+					Path thePath = new Path(upNode,dnNode,emitVeh.getPath());
+					newVeh.setPath(thePath,1);
+				}
 				//todo 调试阶段暂时固定路径
 				newVeh.fixPath();
 				newVeh.initNetworkEntrance(simClock.getCurrentTime(), mlpLane(emitVeh.laneIdx).getLength()-validDis);
@@ -476,6 +484,40 @@ public class MLPNetwork extends RoadNetwork {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public List<EtyGPS> recordGPSData(){
+		VehicleData vd;
+		List<EtyGPS> result = new ArrayList<>();
+		if (!veh_list.isEmpty()) {
+			//遍历vehicle
+			for (MLPVehicle v : veh_list) {
+				// 非虚拟车
+				if(v.virtualType==0){
+					vd = VehicleDataPool.getInstance().newData();
+					//记录车辆信息
+					transformVehData(vd, v);
+					//从vehicledata提取GPS
+					GeoPoint hPos = vd.getHeadPosition();
+					GeoPoint tPos = vd.getTrailPosition();
+					GeoPoint latLonPos = CoordTransformUtils.plane2latlon(hPos,worldSpace.getSouthWestPoint());
+					double angle = GeoUtil.calcDirAngle(tPos,hPos);
+					double speed_km_h = v.getCurrentSpeed() * 3.6;
+					String speedColor;
+					if (speed_km_h >= 0 && speed_km_h <= 15)
+						speedColor = "r"; //红色
+					else if (speed_km_h > 15 && speed_km_h <= 30)
+						speedColor = "y"; //黄色
+					else
+						speedColor = "g"; //绿色
+					String ftnode = v.getLink().getUpNode().getId() + "_" + v.getLink().getDnNode().getId();
+					EtyGPS gps = new EtyGPS(v.getLicense(),v.getLicenseType(),latLonPos.getLocationX(),latLonPos.getLocationY(),
+							angle,speedColor,getSimClock().getCurrentLocalDateTime(),ftnode);
+					result.add(gps);
+				}
+			}
+		}
+		return result;
 	}
 
 	public void assignPath(MLPVehicle mlpVeh, MLPNode oriNode, MLPNode desNode, boolean isImported) {
@@ -709,6 +751,33 @@ public class MLPNetwork extends RoadNetwork {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+
+	public void loadInflowFromTripPathRec(LocalDateTime fromTime, LocalDateTime toTime, String nodeList, String fileName){
+		try {
+			ArrayList<TripPathRecord> records;
+			if (fileName==null||!fileName.equals(""))
+				records = TripPathProcess.QueryTripPath(fromTime, toTime);
+			else {
+				if (bReader == null) {
+					File f = new File(fileName);
+					bReader = new BufferedReader(new FileReader(f));
+					bReader.readLine();//table heading
+				}
+				String readLine;
+				records = new ArrayList<>();
+				double emitTime = 0.0;
+				while ((readLine = bReader.readLine()) != null && emitTime <= getSimClock().secondsUntil(toTime)) {
+					records.add(TripPathProcess.parseCSVRow(readLine));
+				}
+			}
+			ArrayList<TripPathRecord> trimRecords = TripPathProcess.filterRegion(records,nodeList);
+			ArrayList<TripPathRecord> fixedFTime = TripPathProcess.estimateViaTime(trimRecords);
+			TripPathProcess.append2InFlow(fixedFTime,this);
+		}
+		catch (Exception e){
+			System.err.println("fail loading inflow");
 		}
 	}
 
