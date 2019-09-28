@@ -60,7 +60,8 @@ public class SimulationClock {
 	{
 		setBaseTime();
 
-		zeroTime = LocalDateTime.now().with(LocalTime.MIN);
+		if (zeroTime==null)
+			zeroTime = LocalDateTime.now().with(LocalTime.MIN);
 		if (start > stop || step < 0.0) {
 			return 1;
 		}
