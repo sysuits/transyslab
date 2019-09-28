@@ -35,6 +35,7 @@ public class VehicleData implements NetworkObject,Comparable<VehicleData>{
 	protected double vehicleLength_;
 	//车辆沿segment或lane的坐标位置
 	protected GeoPoint headPosition;
+	protected GeoPoint trailPosition;
 	//车辆形状
 	protected GeoSurface rectangle;
 	//车辆信息
@@ -259,7 +260,7 @@ public class VehicleData implements NetworkObject,Comparable<VehicleData>{
 		double vhcTrailX = startPnt.getLocationX() + s * (endPnt.getLocationX() - startPnt.getLocationX()) / l;
 		double vhcTrailY = startPnt.getLocationY() + s * (endPnt.getLocationY() - startPnt.getLocationY()) / l;
 		this.headPosition = new GeoPoint(vhcHeadX, vhcHeadY, 0.0);
-		GeoPoint trailPosition = new GeoPoint(vhcTrailX, vhcTrailY, 0.0);
+		this.trailPosition = new GeoPoint(vhcTrailX, vhcTrailY, 0.0);
 		// 注意：对象更替频繁
 		this.rectangle = GeoUtil.lineToRectangle(trailPosition, headPosition, width,bothSize);
 	}
@@ -284,6 +285,10 @@ public class VehicleData implements NetworkObject,Comparable<VehicleData>{
 	//wym
 	public GeoPoint getHeadPosition(){
 		return headPosition;
+	}
+
+	public GeoPoint getTrailPosition() {
+		return trailPosition;
 	}
 
 	@Override

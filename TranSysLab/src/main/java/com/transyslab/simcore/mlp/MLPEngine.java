@@ -306,32 +306,50 @@ public class MLPEngine extends SimulationEngine{
 		//Êä³ö¹ì¼£
 		if (trackOn && Math.floorMod(stepCount,trackStep)==0) {
 			if (!mlpNetwork.veh_list.isEmpty() ) {//&& now - 2*Math.floor(now/2) < 0.001
-				int LV;
-				int FV;
-				for (MLPVehicle v : mlpNetwork.veh_list) {
-					LV = 0; FV = 0;
-					if (v.leading !=null)
-						LV = v.leading.getId();
-					if (v.trailing != null)
-						FV = v.trailing.getId();
-					trackWriter.write(
-							now + "," +
-								v.rvId + "," +
-								v.getId() + "," +
-								v.virtualType + "," +
-								v.buffer + "," +
-								v.getLocationRef() + "," +
-								v.Displacement() + "," +
-								v.getCurrentSpeed() + "," +
-								LV + "," +
-								FV + "," +
-								v.resemblance + "," +
-								v.currentMileage() + "," +
-								v.getPath().getDesNode().getId() +
+				if(config.getString("outputType").equals("vehicledata")){
+					int LV;
+					int FV;
+					for (MLPVehicle v : mlpNetwork.veh_list) {
+						LV = 0; FV = 0;
+						if (v.leading !=null)
+							LV = v.leading.getId();
+						if (v.trailing != null)
+							FV = v.trailing.getId();
+						trackWriter.write(
+								now + "," +
+										v.rvId + "," +
+										v.getId() + "," +
+										v.virtualType + "," +
+										v.buffer + "," +
+										v.getLocationRef() + "," +
+										v.Displacement() + "," +
+										v.getCurrentSpeed() + "," +
+										LV + "," +
+										FV + "," +
+										v.resemblance + "," +
+										v.currentMileage() + "," +
+										v.getPath().getDesNode().getId() +
 								/*Thread.currentThread().getName() + "_" + mod + "," +
 								LocalDateTime.now() +*/ "\r\n"
-					);
+						);
+					}
 				}
+				else if(config.getString("outputType").equals("gps")){
+					List<EtyGPS> records  = mlpNetwork.recordGPSData();
+					for(EtyGPS record:records){
+						trackWriter.write(
+								record.moment + "," +
+										record.hphm + "," +
+										record.hpzl + "," +
+										record.longitude + "," +
+										record.latitude + "," +
+										record.angle + "," +
+										record.speedcolor  + "," +
+										record.ftnode  + "\r\n"
+						);
+					}
+				}
+
 			}
 		}
 
@@ -634,8 +652,12 @@ public class MLPEngine extends SimulationEngine{
 							config.getString("dburl"),
 							config.getString("username"),
 							config.getString("password"));
-			if (trackWriter instanceof TXTUtils)
-				trackWriter.write("TIME,RVID,VID,VIRTUALIDX,BUFF,LANEPOS,LANEID,SEGMENT,LINK,CONNECTORID,LR,DISPLACEMENT,SPEED,LEAD,FOLLOWER,IN_PLATOON,MILEAGE,TNODE\r\n");
+			if (trackWriter instanceof TXTUtils){
+                if(config.getString("outputType").equals("gps"))
+                    trackWriter.write("moment,hphm,hpzl,longitude,latitude,angle,speedcolor,ftnode\r\n");
+                else
+                    trackWriter.write("TIME,RVID,VID,VIRTUALIDX,BUFF,LANEPOS,LANEID,SEGMENT,LINK,CONNECTORID,LR,DISPLACEMENT,SPEED,LEAD,FOLLOWER,IN_PLATOON,MILEAGE,TNODE\r\n");
+            }
 		}
 		if (infoOn)
 			infoWriter = new TXTUtils(runProperties.get("outputPath") + "/" + "info" + fileOutTag + threadName + "_" + mod + ".txt");
