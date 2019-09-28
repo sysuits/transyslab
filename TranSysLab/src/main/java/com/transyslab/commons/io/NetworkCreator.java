@@ -42,8 +42,7 @@ import java.util.stream.Collectors;
 
 public class NetworkCreator {
     public static void readDataFromDB(RoadNetwork roadNetwork, String nodeIdList, boolean hasDoubleCR) throws SQLException {
-        DataSource ds = JdbcUtils.getDataSource();
-        org.apache.commons.dbutils.QueryRunner qr = new QueryRunner(ds);
+        QueryRunner qr = JdbcUtils.getQueryRunner();
         String sql;
         List<Object[]> result = null;
         // 读取节点数据, roadid为空的记录为交叉口节点

@@ -31,21 +31,19 @@ public class DBWriter implements IOWriter{
     StringBuilder sb;
     Connection conn;
 
-    public DBWriter(String newTableName, String dbUrl, String usr, String pwd) {
+    public DBWriter(String newTableName, String createTableCmd, String dbUrl, String usr, String pwd) {
         this.newTableName = newTableName;
         sb = new StringBuilder();
         try {
             conn = DriverManager.getConnection(dbUrl, usr,pwd);
-            Statement stmt = conn.createStatement();
-            stmt.executeUpdate(getCreateTableCMD());
+            if (createTableCmd!=null && !createTableCmd.equals("")){
+                Statement stmt = conn.createStatement();
+                stmt.executeUpdate(createTableCmd);
+            }
         }
         catch (Exception e){
             System.out.println("db failed");
         }
-    }
-
-    private String getCreateTableCMD(){
-        return "CREATE TABLE " + newTableName + " as (select * from track where 1=2);";
     }
 
     private InputStream transfer(){

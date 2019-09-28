@@ -846,35 +846,60 @@ public class MLPNetwork extends RoadNetwork {
 	}
 
 	public void writeStat2Db(String tag, LocalDateTime dt) {
-		DBUploader loopWriter = new DBUploader("insert into simloop(det, time_period, flow, speed, density, travel_time, tag, create_time) values(?,?,?,?,?,?,?,?)");
+		DBWriter loopWriter = new DBWriter(
+				"simloop",
+				null,
+				mlpEngine.getConfig("dburl"),
+				mlpEngine.getConfig("username"),
+				mlpEngine.getConfig("password"));
 		sectionStatMap.forEach((k,v) -> {
 			String det = k;
 			for (int i = 0; i<v.size(); i++) {
 				MacroCharacter r = v.get(i);
-				loopWriter.write(new Object[] {det, (i+1), r.flow, r.speed, r.density, r.travelTime, tag, dt});
+				loopWriter.write(
+					det +  "," +
+					(i+1) +  "," +
+					r.flow +  "," +
+					r.speed +  "," +
+					r.density +  "," +
+					r.travelTime +  "," +
+					tag +  "," +
+					dt + "\r\n");
 			}
 		});
+		loopWriter.flushBuffer();
 		laneSecMap.forEach((k,v) -> {
 			String det = k.detName + "_" + k.getLane().getId();
 			for (int i = 0; i<v.size(); i++) {
 				MacroCharacter r = v.get(i);
-				loopWriter.write(new Object[] {det, (i+1), r.flow, r.speed, r.density, r.travelTime, tag, dt});
+				loopWriter.write(
+						det +  "," +
+								(i+1) +  "," +
+								r.flow +  "," +
+								r.speed +  "," +
+								r.density +  "," +
+								r.travelTime +  "," +
+								tag +  "," +
+								dt + "\r\n");
 			}
 		});
+		loopWriter.flushBuffer();
 		linkStatMap.forEach((k,v) -> {
 			String det = "Link" + k.getId();
 			for (int i = 0; i<v.size(); i++) {
 				MacroCharacter r = v.get(i);
-				loopWriter.write(new Object[] {det, (i+1), r.flow, r.speed, r.density, r.travelTime, tag, dt});
+				loopWriter.write(
+						det +  "," +
+								(i+1) +  "," +
+								r.flow +  "," +
+								r.speed +  "," +
+								r.density +  "," +
+								r.travelTime +  "," +
+								tag +  "," +
+								dt + "\r\n");
 			}
 		});
-		loopWriter.flush();
-		loopWriter.beforeClose();
-		try {
-			loopWriter.getConnection().close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		loopWriter.closeWriter();
 	}
 
 	public void clearSecStat() {

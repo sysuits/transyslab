@@ -27,10 +27,13 @@ import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.ArrayListHandler;
 //import org.apache.commons.logging.Log;
 //import org.apache.commons.logging.LogFactory;
 
 import java.sql.PreparedStatement;
+import java.util.List;
 
 
 public class JdbcUtils {
@@ -110,5 +113,13 @@ public class JdbcUtils {
 
 	public static void setPropertiesFileName(String fileName){
 		JdbcUtils.dbPropertiesFileName = fileName;
+	}
+
+	public static QueryRunner getQueryRunner(){
+		return new QueryRunner(getDataSource());
+	}
+
+	public static List<Object[]> query(String sql) throws SQLException {
+		return getQueryRunner().query(sql, new ArrayListHandler());
 	}
 }

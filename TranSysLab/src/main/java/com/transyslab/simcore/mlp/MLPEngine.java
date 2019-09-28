@@ -616,9 +616,11 @@ public class MLPEngine extends SimulationEngine{
 			loopRecWriter.write("DETNAME,TIME,VID,VIRTYPE,SPD,POS,LINK,LOCATION\r\n");
 		}
 		if (trackOn) {
+			String trackFileName = "track" + fileOutTag + threadName + "_" + mod;
 			trackWriter = config.getBoolean("saveLocally") ?
-					new TXTUtils(runProperties.get("outputPath") + "/" + "track" + fileOutTag + threadName + "_" + mod + ".csv") :
-					new DBWriter("track" + fileOutTag + threadName + "_" + mod,
+					new TXTUtils(runProperties.get("outputPath") + "/" + trackFileName + ".csv") :
+					new DBWriter(trackFileName,
+							"CREATE TABLE " + trackFileName + " as (select * from track where 1=2);",
 							config.getString("dburl"),
 							config.getString("username"),
 							config.getString("password"));
@@ -1055,5 +1057,9 @@ public class MLPEngine extends SimulationEngine{
 
 	public boolean broadcasting(){
 		return config.getBoolean("engineBroadcast");
+	}
+
+	public String getConfig(String name){
+		return config.getString(name);
 	}
 }
