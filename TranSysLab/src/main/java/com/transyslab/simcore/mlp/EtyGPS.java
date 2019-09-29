@@ -18,9 +18,10 @@ public class EtyGPS {
     public String speedcolor;// 车身颜色，代表车速值高（绿）中（黄）低（红），
     public String moment;
     public String ftnode;
+    public double speed;
 
     public EtyGPS(String hphm, String hpzl, double longitude, double latitude, double angle,
-                  String speedColor, LocalDateTime moment,String ftnode) {
+                  String speedColor, LocalDateTime moment,String ftnode, double speed) {
         this.hphm = hphm;
         this.hpzl = Integer.valueOf(hpzl);
         // 保留6位小数
@@ -33,5 +34,6 @@ public class EtyGPS {
         this.speedcolor = speedColor;
         this.moment = moment.format(SimulationClock.DATETIME_FORMAT);
         this.ftnode = ftnode;
+        this.speed = speed;
     }
 }

@@ -512,7 +512,7 @@ public class MLPNetwork extends RoadNetwork {
 						speedColor = "g"; //бли╚
 					String ftnode = v.getLink().getUpNode().getId() + "_" + v.getLink().getDnNode().getId();
 					EtyGPS gps = new EtyGPS(v.getLicense(),v.getLicenseType(),latLonPos.getLocationX(),latLonPos.getLocationY(),
-							angle,speedColor,getSimClock().getCurrentLocalDateTime(),ftnode);
+							angle,speedColor,getSimClock().getCurrentLocalDateTime(),ftnode,speed_km_h);
 					result.add(gps);
 				}
 			}

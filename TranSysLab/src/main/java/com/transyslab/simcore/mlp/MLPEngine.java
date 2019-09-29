@@ -345,7 +345,8 @@ public class MLPEngine extends SimulationEngine{
 										record.latitude + "," +
 										record.angle + "," +
 										record.speedcolor  + "," +
-										record.ftnode  + "\r\n"
+										record.ftnode  + "," +
+										record.speed  + "\r\n"
 						);
 					}
 				}
@@ -654,7 +655,7 @@ public class MLPEngine extends SimulationEngine{
 							config.getString("password"));
 			if (trackWriter instanceof TXTUtils){
                 if(config.getString("outputType").equals("gps"))
-                    trackWriter.write("moment,hphm,hpzl,longitude,latitude,angle,speedcolor,ftnode\r\n");
+                    trackWriter.write("moment,hphm,hpzl,longitude,latitude,angle,speedcolor,ftnode,speed\r\n");
                 else
                     trackWriter.write("TIME,RVID,VID,VIRTUALIDX,BUFF,LANEPOS,LANEID,SEGMENT,LINK,CONNECTORID,LR,DISPLACEMENT,SPEED,LEAD,FOLLOWER,IN_PLATOON,MILEAGE,TNODE\r\n");
             }
