@@ -156,4 +156,8 @@ public class WorldSpace {
 		return angle;
 	}
 
+	public void recoverEdgePoints(GeoPoint northEastPnt, GeoPoint southWestPnt){
+		this.northEastPnt = northEastPnt;
+		this.southWestPnt = southWestPnt;
+	}
 }

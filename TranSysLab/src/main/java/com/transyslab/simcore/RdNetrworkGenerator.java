@@ -43,6 +43,13 @@ public class RdNetrworkGenerator {
         return wrapEle;
     }
 
+    public Element recordExtremPoints(WorldSpace wp){
+        Element worldSpace = dom.createElement("WorldSpace");
+        worldSpace.setAttribute("SouthWest",wp.getSouthWestPoint().toString());
+        worldSpace.setAttribute("NorthEast",wp.getNorthEastPoint().toString());
+        return worldSpace;
+    }
+
     public Element generateNodes(List<Node> nodes){
         Element nodesEle = dom.createElement("Nodes");
         nodesEle.setAttribute("nodeNum",String.valueOf(nodes.size()));
@@ -181,6 +188,8 @@ public class RdNetrworkGenerator {
 
 
         Element tslEle = dom.createElement("TranSysLab");
+
+        tslEle.appendChild(recordExtremPoints(rn.getWorldSpace()));
         tslEle.appendChild(generateNodes(rn.getNodes()));
         tslEle.appendChild(generateLinks(rn.getLinks()));
         tslEle.appendChild(generateConnectors(rn.getConnectors()));
