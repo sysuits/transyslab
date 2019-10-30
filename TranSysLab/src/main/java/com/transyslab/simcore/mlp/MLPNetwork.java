@@ -48,6 +48,15 @@ public class MLPNetwork extends RoadNetwork {
 	private MLPEngine mlpEngine;
 	private AllDirectedPaths allDirectedPaths;
 
+	private HashMap<Long, MLPNode> nodeHM;
+	private HashMap<Long, MLPLink> linkHM;
+	private HashMap<String, MLPLink> ftLinkHM;
+	private HashMap<Long, MLPSegment> segmentHM;
+	private HashMap<Long, MLPLane> laneHM;
+	private HashMap<Long, MLPConnector> connectorHM;
+	private HashMap<String, MLPConnector> ftConnHM;
+
+
 	//引擎输出变量
 	protected HashMap<MLPLink, List<MacroCharacter>> linkStatMap;
 	protected HashMap<String, List<MacroCharacter>> sectionStatMap;
@@ -64,6 +73,13 @@ public class MLPNetwork extends RoadNetwork {
 		sectionStatMap = new HashMap<>();
 		laneSecMap = new HashMap<>();
 
+		nodeHM = new HashMap<>();
+		linkHM = new HashMap<>();
+		ftLinkHM = new HashMap<>();
+		segmentHM = new HashMap<>();
+		laneHM = new HashMap<>();
+		connectorHM = new HashMap<>();
+		ftConnHM = new HashMap<>();
 	}
 
 	public MLPNetwork(MLPEngine engine){
@@ -77,6 +93,7 @@ public class MLPNetwork extends RoadNetwork {
 		newNode.init(id, type, nNodes() ,name, posPoint);
 		worldSpace.recordExtremePoints(newNode.getPosPoint());
 		this.nodes.add(newNode);
+		nodeHM.put(newNode.getId(),newNode);
 		this.addVertex(newNode);
 		return newNode;
 	}
@@ -86,6 +103,8 @@ public class MLPNetwork extends RoadNetwork {
 		MLPLink newLink = new MLPLink();
 		newLink.init(id,type,name,nLinks(),findNode(upNodeId),findNode(dnNodeId),this);
 		links.add(newLink);
+		linkHM.put(newLink.getId(), newLink);
+		ftLinkHM.put(upNodeId + "_" + dnNodeId, newLink);
 		return newLink;
 	}
 	@Override
@@ -94,6 +113,7 @@ public class MLPNetwork extends RoadNetwork {
 		newSegment.init(id,speedLimit,nSegments(),freeSpeed,grd,ctrlPoint,links.get(nLinks()-1));
 		worldSpace.recordExtremePoints(ctrlPoint);
 		segments.add(newSegment);
+		segmentHM.put(newSegment.getId(), newSegment);
 		return newSegment;
 	}
 
@@ -103,6 +123,7 @@ public class MLPNetwork extends RoadNetwork {
 		newLane.init(id,rule,nLanes(),orderNum,width,direction,ctrlPoints,segments.get(nSegments()-1));
 		worldSpace.recordExtremePoints(ctrlPoints);
 		lanes.add(newLane);
+		laneHM.put(id,newLane);
 		return newLane;
 	}
 
@@ -132,8 +153,37 @@ public class MLPNetwork extends RoadNetwork {
 	}
 
 	@Override
+	public MLPNode findNode(long id) {
+		return nodeHM.get(id);
+	}
+
+	@Override
 	public MLPLink findLink(long id) {
-		return (MLPLink) super.findLink(id);
+		return linkHM.get(id);
+	}
+
+	@Override
+	public MLPLink findLink(long fnid, long tnid) {
+		return ftLinkHM.get(fnid + "_" +tnid);
+	}
+
+	@Override
+	public MLPSegment findSegment(long id) {
+		return segmentHM.get(id);
+	}
+
+	@Override
+	public MLPLane findLane(long id) {
+		return laneHM.get(id);
+	}
+
+	@Override
+	public MLPConnector findConnector(long id) {
+		return connectorHM.get(id);
+	}
+
+	public MLPConnector findConnector(long upLaneID, long dnLaneID) {
+		return ftConnHM.get(upLaneID + "_" + dnLaneID);
 	}
 
 	public void calcStaticInfo() {
@@ -1029,6 +1079,8 @@ public class MLPNetwork extends RoadNetwork {
 			theNode.addLC(mlpConn);
 		}
 		this.connectors.add(mlpConn);
+		connectorHM.put(mlpConn.getId(), mlpConn);
+		ftConnHM.put(mlpConn.upLaneID() + "_" + mlpConn.dnLaneID(), mlpConn);
 		return mlpConn;
 	}
 

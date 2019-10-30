@@ -258,7 +258,7 @@ public abstract class RoadNetwork extends SimpleDirectedWeightedGraph<Node, Link
 	public Boundary findBoundary(long id){
 		return boundaries.stream().filter(b -> b.getId() == id).findFirst().orElse(null);
 	}
-	public Connector findConnector(int id){
+	public Connector findConnector(long id){
 		return connectors.stream().filter(c ->c.getId() == id).findFirst().orElse(null);
 	}
 	public ODPair findODPair(int id){
