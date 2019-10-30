@@ -24,6 +24,7 @@ import java.util.List;
 
 public class RdNetrworkGenerator {
     Document dom;
+    RoadNetwork rn;
 
     public RdNetrworkGenerator(){
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -43,13 +44,6 @@ public class RdNetrworkGenerator {
         return wrapEle;
     }
 
-    public Element recordExtremPoints(WorldSpace wp){
-        Element worldSpace = dom.createElement("WorldSpace");
-        worldSpace.setAttribute("SouthWest",wp.getSouthWestPoint().toString());
-        worldSpace.setAttribute("NorthEast",wp.getNorthEastPoint().toString());
-        return worldSpace;
-    }
-
     public Element generateNodes(List<Node> nodes){
         Element nodesEle = dom.createElement("Nodes");
         nodesEle.setAttribute("nodeNum",String.valueOf(nodes.size()));
@@ -65,7 +59,7 @@ public class RdNetrworkGenerator {
         nodeEle.setAttribute("id",String.valueOf(node.getId()));
         nodeEle.setAttribute("type",String.valueOf(node.getType()));
         nodeEle.setAttribute("name",String.valueOf(node.getName()));
-        nodeEle.setAttribute("geoString",String.valueOf(node.getPosPoint().toString()));
+        nodeEle.setAttribute("geoString",String.valueOf(rn.getWorldSpace().recover(node.getPosPoint()).toString()));
         return nodeEle;
     }
 
@@ -98,7 +92,7 @@ public class RdNetrworkGenerator {
         segmentEle.setAttribute("speedLimit",String.valueOf(segment.speedLimit()));
         segmentEle.setAttribute("freeSpeed",String.valueOf(segment.getFreeSpeed()));
         segmentEle.setAttribute("gradient",String.valueOf(segment.getGrade()));
-        segmentEle.setAttribute("ctrlPoints", GeoPoints.toString(segment.getCtrlPoints()));
+        segmentEle.setAttribute("ctrlPoints", GeoPoints.toString(rn.getWorldSpace().recover(segment.getCtrlPoints())));
         for (int i = 0; i < segment.nLanes(); i++) {
             segmentEle.appendChild(generateLane(segment.getLane(i)));
         }
@@ -112,7 +106,7 @@ public class RdNetrworkGenerator {
         laneEle.setAttribute("orderNum",String.valueOf(lane.getOrderNum()));
         laneEle.setAttribute("width",String.valueOf(lane.getWidth()));
         laneEle.setAttribute("direction",lane.getDirection());
-        laneEle.setAttribute("ctrlPoints", GeoPoints.toString(lane.getCtrlPoints()));
+        laneEle.setAttribute("ctrlPoints", GeoPoints.toString(rn.getWorldSpace().recover(lane.getCtrlPoints())));
         return laneEle;
     }
 
@@ -130,7 +124,7 @@ public class RdNetrworkGenerator {
         connEle.setAttribute("connectorId",String.valueOf(conn.getId()));
         connEle.setAttribute("fLaneId",String.valueOf(conn.upLaneID()));
         connEle.setAttribute("tLaneId",String.valueOf(conn.dnLaneID()));
-        connEle.setAttribute("ctrlPoints", GeoPoints.toString(conn.getShapePoints()));
+        connEle.setAttribute("ctrlPoints", GeoPoints.toString(rn.getWorldSpace().recover(conn.getShapePoints())));
         return connEle;
     }
 
@@ -162,13 +156,12 @@ public class RdNetrworkGenerator {
         boolean lineStyle = config.getBoolean("doubleLine");
 
         //initiate road network type
-        RoadNetwork rn;
 
         if (config.getString("modelType").equals("MLP")){
 //            rn = new MLPNetwork();
             MLPEngine mlpEngine = new MLPEngine(masterFileName);
             mlpEngine.loadFiles();
-            rn = mlpEngine.getNetwork();
+            this.rn = mlpEngine.getNetwork();
         }
         else
             return;
@@ -189,7 +182,6 @@ public class RdNetrworkGenerator {
 
         Element tslEle = dom.createElement("TranSysLab");
 
-        tslEle.appendChild(recordExtremPoints(rn.getWorldSpace()));
         tslEle.appendChild(generateNodes(rn.getNodes()));
         tslEle.appendChild(generateLinks(rn.getLinks()));
         tslEle.appendChild(generateConnectors(rn.getConnectors()));

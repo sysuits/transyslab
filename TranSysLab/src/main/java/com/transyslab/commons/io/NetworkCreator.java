@@ -254,12 +254,6 @@ public class NetworkCreator {
             List<GeoPoint> ctlPs = GeoPoints.parse(connEle.getAttribute("ctrlPoints"));
             roadNetwork.createConnector(connectorId,fLaneId,tLaneId,ctlPs);
         }
-        //recover world space
-        Element ws = (Element) dom.getElementsByTagName("WorldSpace").item(0);
-        roadNetwork.getWorldSpace().recoverEdgePoints(
-                GeoPoint.parse(ws.getAttribute("NorthEast")),
-                GeoPoint.parse(ws.getAttribute("SouthWest"))
-        );
     }
 
     public static List<Segment> readSegments(RoadNetwork roadNetwork,List<Object[]> filteredSgmtData,LinkedHashMap<Long,List<Object[]>> sgmtId2Lanes)  {

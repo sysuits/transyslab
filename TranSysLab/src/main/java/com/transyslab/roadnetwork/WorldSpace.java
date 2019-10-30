@@ -17,6 +17,7 @@
 
 package com.transyslab.roadnetwork;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -156,8 +157,13 @@ public class WorldSpace {
 		return angle;
 	}
 
-	public void recoverEdgePoints(GeoPoint northEastPnt, GeoPoint southWestPnt){
-		this.northEastPnt = northEastPnt;
-		this.southWestPnt = southWestPnt;
+	public List<GeoPoint> recover(List<GeoPoint> ctrlPoints){
+		List<GeoPoint> ans = new ArrayList<>();
+		ctrlPoints.forEach(c -> ans.add(c.add(southWestPnt)));
+		return ans;
+	}
+
+	public GeoPoint recover(GeoPoint ctrlPoint){
+		return ctrlPoint.add(southWestPnt);
 	}
 }
