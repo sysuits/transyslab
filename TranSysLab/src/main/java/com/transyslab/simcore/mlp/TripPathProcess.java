@@ -133,7 +133,10 @@ public class TripPathProcess {
                 long fnodeId = Long.parseLong(viaNodes[i]);
                 long tnodeId = Long.parseLong(viaNodes[i+1]);
                 Link link = network.findLink(fnodeId,tnodeId);
-                long linkId = link.getId();
+                if (link==null){
+                    System.out.println("can not find ftnode " + fnodeId + "_" + tnodeId);
+                    continue;
+                }
                 path.add(link);
                 if(i==0){ //
                     fLink = link;
@@ -150,7 +153,7 @@ public class TripPathProcess {
             // 进入车道,驶出link
             if(inLane!=null && tLink!=null){
                 SimulationClock sc = network.getSimClock();
-                long time2Enter = tpr.getUpTime().toEpochSecond(ZoneOffset.of("+8"));
+                long time2Enter = (long) sc.secondsUntil(tpr.getUpTime());
                 ((MLPLink) fLink).appendIndentityInflow(inLane.getId(),tLink.getId(),time2Enter,22.2,
                         inLane.getLength(),rvid,path,tpr.getHphm(),tpr.getHpzl());
 

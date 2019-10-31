@@ -134,7 +134,7 @@ public class MLPEngine extends SimulationEngine{
 		}
 
 		runProperties.put("emitSourceType", config.getString("emitSourceType"));
-		if (runProperties.get("emitSourceType").equals("FILE"))
+		if (runProperties.get("emitSourceType").contains("FILE"))
 			runProperties.put("emitSource", rootDir + config.getString("emitSource"));
 		else
 			runProperties.put("emitSource", config.getString("emitSource"));

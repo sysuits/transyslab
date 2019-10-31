@@ -807,7 +807,7 @@ public class MLPNetwork extends RoadNetwork {
 	public void loadInflowFromTripPathRec(LocalDateTime fromTime, LocalDateTime toTime, String nodeList, String fileName){
 		try {
 			ArrayList<TripPathRecord> records;
-			if (fileName==null||!fileName.equals(""))
+			if (fileName==null||fileName.equals(""))
 				records = TripPathProcess.QueryTripPath(fromTime, toTime);
 			else {
 				if (bReader == null) {
@@ -822,9 +822,10 @@ public class MLPNetwork extends RoadNetwork {
 					records.add(TripPathProcess.parseCSVRow(readLine));
 				}
 			}
-			ArrayList<TripPathRecord> trimRecords = TripPathProcess.filterRegion(records,nodeList);
-			ArrayList<TripPathRecord> fixedFTime = TripPathProcess.estimateViaTime(trimRecords);
-			TripPathProcess.append2InFlow(fixedFTime,this);
+			//tmp remove filter
+//			ArrayList<TripPathRecord> trimRecords = TripPathProcess.filterRegion(records,nodeList);
+//			ArrayList<TripPathRecord> fixedFTime = TripPathProcess.estimateViaTime(trimRecords);
+			TripPathProcess.append2InFlow(records,this);
 		}
 		catch (Exception e){
 			System.err.println("fail loading inflow");
