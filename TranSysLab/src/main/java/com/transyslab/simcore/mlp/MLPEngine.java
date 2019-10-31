@@ -202,7 +202,7 @@ public class MLPEngine extends SimulationEngine{
 			updateTime_ = now + ((MLPParameter) mlpNetwork.getSimParameter()).updateStepSize_;
 			if (broadcasting()){
 				double num = mlpNetwork.veh_list.size();
-				String msg = "info: time " + now
+				String msg = "info: time " + getSimClock().getCurrentLocalDateTime().format(SimulationClock.DATETIME_FORMAT)
 						+ " agent counts: " + num
 						+ " meanSpd: " + mlpNetwork.veh_list.stream().mapToDouble(v->v.getCurrentSpeed()/num).sum();
 				System.out.println(msg);

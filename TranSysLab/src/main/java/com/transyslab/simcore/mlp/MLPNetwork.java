@@ -496,7 +496,7 @@ public class MLPNetwork extends RoadNetwork {
 
 	public void transformVehData(VehicleData vd, MLPVehicle veh) {
 		vd.init(veh,false,(veh.resemblance ? Constants.FOLLOWING : 0) + Math.min(1,veh.virtualType), veh.getInfo());
-//		vd.setPathInfo(veh.getPath());
+		vd.setPathInfo(veh.getPath());
 		//todo: 过渡方案
 		//计算翻译线性参考
 		Object[] lrOjb = veh.getLR();

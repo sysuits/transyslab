@@ -91,8 +91,15 @@ public class VehicleData implements NetworkObject,Comparable<VehicleData>{
 	}
 	public void setPathInfo(Path path){
 		StringBuilder sb = new StringBuilder();
+		String roadName = "";
 		for (Link l : path.getLinks()) {
-			sb.append("¡ú" + l.getId());
+			String newName = l.getName();
+			if (newName==null)
+				newName = String.valueOf(l.getId());
+			if (!newName.equals(roadName)){
+				roadName = l.getName();
+				sb.append("¡ú" + roadName);
+			}
 		}
 		pathInfo = sb.toString().substring(1);
 	}
