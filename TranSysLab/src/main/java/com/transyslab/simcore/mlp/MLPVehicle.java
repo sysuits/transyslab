@@ -705,9 +705,9 @@ public class MLPVehicle extends Vehicle{
 	}
 
     public String getLicense() {
-        return license;
+        return license==null ? String.valueOf(getId()) : license;
     }
     public String getLicenseType(){
-	    return licenseType;
+	    return licenseType==null ? "0" : licenseType;
     }
 }

@@ -296,7 +296,14 @@ public class MLPNetwork extends RoadNetwork {
 				newVeh.initInfo(0,launchingLink,mlpLane(emitVeh.laneIdx).getSegment(),mlpLane(emitVeh.laneIdx),emitVeh.realVID);
 				MLPVehicle last = mlpLane(emitVeh.laneIdx).getTail();
 				double validDis = last==null ? emitVeh.dis : Math.max(last.getDistance()+last.getLength()+((MLPParameter)getSimParameter()).minGap(0.0),emitVeh.dis);
-				newVeh.init(getNewVehID(), VehicleType.getType(emitVeh.vehClassType).length, (float) validDis, (float) emitVeh.speed,emitVeh.license,emitVeh.licenseType);
+				newVeh.init(getNewVehID(),
+						VehicleType.getType(emitVeh.vehClassType).length,
+						(float) validDis,
+						(float) emitVeh.speed,
+						emitVeh.license,
+						emitVeh.licenseType==null?
+								String.valueOf(emitVeh.vehClassType):
+								emitVeh.licenseType);
 				MLPNode upNode = (MLPNode) launchingLink.getUpNode();
 				MLPNode dnNode = emitVeh.tLinkID==0 ? null : (MLPNode) findLink(emitVeh.tLinkID).getDnNode();
 				List<Link> pathRec = emitVeh.getPath();
