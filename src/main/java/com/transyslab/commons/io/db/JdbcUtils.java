@@ -96,6 +96,9 @@ public class JdbcUtils implements GeneralDB{
 				bds.setUrl(dbStr[0]);
 				bds.setUsername(dbStr[1]);
 				bds.setPassword(dbStr[2]);
+				if (dbStr.length>3){
+					bds.setDriverClassName(dbStr[3]);
+				}
 				//substitude
 				dataSource = bds;
 				List<Object[]> res = getQueryRunner().query(sql, new ArrayListHandler());
