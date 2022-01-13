@@ -471,12 +471,7 @@ public class MLPEngine extends SimulationEngine{
 				if (node==null)
 					continue;
 				node.setType(Constants.NODE_TYPE_SIGNALIZED_INTERSECTION);
-				List<double[]> scheduler = node.signalTable.get(flid+"_"+tlid);
-				if (scheduler==null){
-					scheduler = new ArrayList<>();
-					node.signalTable.put(flid+"_"+tlid,scheduler);
-				}
-				scheduler.add(new double[]{stime,etime});
+				node.addSigTable(flid+"_"+tlid,new double[]{stime,etime});
 			}
 		}catch (Exception e) {
 			e.printStackTrace();

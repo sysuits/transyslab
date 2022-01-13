@@ -31,12 +31,18 @@ public class DBWriter implements IOWriter{
     String newTableName;
     StringBuilder sb;
     protected Connection conn;
+    String dbUrl;
+    String usr;
+    String pwd;
 
     public DBWriter(String newTableName, String createTableCmd, String dbUrl, String usr, String pwd) {
         this.newTableName = newTableName;
         sb = new StringBuilder();
+        this.dbUrl = dbUrl;
+        this.usr = usr;
+        this.pwd = pwd;
+        connect();
         try {
-            conn = DriverManager.getConnection(dbUrl, usr,pwd);
             if (createTableCmd!=null && !createTableCmd.equals("")){
                 Statement stmt = conn.createStatement();
                 stmt.executeUpdate(createTableCmd);
@@ -81,9 +87,30 @@ public class DBWriter implements IOWriter{
         }
     }
 
+    private void connect(){
+        try {
+            conn = DriverManager.getConnection(dbUrl, usr, pwd);
+        }
+        catch (Exception e){
+            System.out.println("fail connect to db");
+        }
+    }
+
     public void softFlush(){
-        if (sb.length()>1e7){
-            flushBuffer();
+        try{
+            if (sb.length()>1e7){
+                if (conn.isClosed()){
+                    connect();
+                }
+                else {
+                    conn.close();
+                    connect();
+                }
+                flushBuffer();
+            }
+        }
+        catch (Exception e){
+            System.out.println("fail flush to db");
         }
     }
 

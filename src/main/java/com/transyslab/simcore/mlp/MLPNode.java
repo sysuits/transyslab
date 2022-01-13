@@ -22,6 +22,7 @@ import com.transyslab.roadnetwork.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MLPNode extends Node{
 	public static double NODE_ALPHA = 1.0;
@@ -29,7 +30,7 @@ public class MLPNode extends Node{
 	public static double NODE_PASS_SPD = 80.0/3.6;
 	private LinkedList<MLPVehicle> statedVehs;
 	protected double passSpd = 40.0/3.6;
-	public HashMap<String, List<double[]>> signalTable;
+	private HashMap<String, List<double[]>> signalTable;
 	public HashMap<String, List<String>> confilctDirs;
 	public int stopCount;
 	public HashMap<String, List<MLPConnector>> turningMap;
@@ -448,6 +449,71 @@ public class MLPNode extends Node{
 		List<GeoPoint> ans = new ArrayList<>();
 		ans.add(fMid);
 		ans.add(tMid);
+		return ans;
+	}
+
+	public boolean addSigTable(String dir, double[]value){
+		try{
+			List<double[]> table = signalTable.computeIfAbsent(dir,k->new ArrayList<>());
+			table.add(value);
+			return true;
+		}
+		catch (Exception e){
+			System.out.println("failed to add signal table");
+			return false;
+		}
+	}
+
+	public void replaceSigTable(String dir, List<double[]>value){
+		signalTable.put(dir,value);
+	}
+
+	public void sortSigTable(){
+		if (!signalTable.isEmpty()){
+			HashMap<String, List<double[]>> sigTab2 = new HashMap<>();
+			signalTable.forEach((d,tab)->{
+				tab.sort(Comparator.comparingDouble(o->o[0]));
+				List<double[]> tab2 = new ArrayList<>();
+				tab2.add(tab.get(0));
+				int last = 0;
+				for (int i = 1; i < tab.size(); i++) {
+					if (tab2.get(last)[1]<tab.get(i)[0]){
+						tab2.add(tab.get(i));
+						last++;
+					}
+					else if(tab2.get(last)[1]<tab.get(i)[1]){
+						tab2.get(last)[1] = tab.get(i)[1];
+					}
+				}
+				sigTab2.put(d,tab2);
+			});
+			signalTable.clear();
+			signalTable = sigTab2;
+		}
+	}
+
+	public List<double[]> readSigTable(String key){
+		List<double[]> ans = new ArrayList<>();
+		List<double[]> tmp = signalTable.get(key);
+		if (tmp!=null){
+			for (int i = 0; i < tmp.size(); i++) {
+				ans.add(Arrays.copyOf(tmp.get(i),tmp.get(i).length));
+			}
+		}
+		return ans;
+	}
+
+	public List<double[]> readSigTable(String key, double[] timeRange) {
+		if (timeRange==null){
+			return readSigTable(key);
+		}
+		List<double[]> ans = new ArrayList<>();
+		List<double[]> tmp = signalTable.get(key).stream().filter(ts->timeRange[0]<=ts[1] && timeRange[1]<=ts[0]).collect(Collectors.toList());
+		for (double[] ts : tmp) {
+			if (timeRange[0] <= ts[1] && timeRange[1] >= ts[0]) {
+				ans.add(Arrays.copyOf(ts, ts.length));
+			}
+		}
 		return ans;
 	}
 
