@@ -45,6 +45,10 @@ public class MLPNode extends Node{
 		vMap = new HashMap<>();
 	}
 
+	public HashMap<String, List<double[]>> getSignalTable(){
+		return this.signalTable;
+	}
+
 	public boolean isIntersection(){
 		return type(Constants.NODE_TYPE_INTERSECTION)!=0;
 	}
