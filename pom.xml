@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.transyslab</groupId>
 	<artifactId>transyslab</artifactId>
-	<version>1.1</version>
+	<version>1.1.1</version>
 	<name>TranSysLab</name>
 
 	<repositories>

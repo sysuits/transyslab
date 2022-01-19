@@ -76,6 +76,13 @@ public class DBWriter implements IOWriter{
             if (sb.length()<=0)
                 return;
             try {
+                if (conn.isClosed()){
+                    connect();
+                }
+                else {
+                    conn.close();
+                    connect();
+                }
                 CopyManager copyManager = new CopyManager((BaseConnection)conn);
                 long num = copyManager.copyIn("copy " + newTableName + " from STDIN DELIMITER ',' ", transfer());
 //                System.out.println(newTableName + " updated " + num + " rows.");
@@ -99,13 +106,6 @@ public class DBWriter implements IOWriter{
     public void softFlush(){
         try{
             if (sb.length()>1e7){
-                if (conn.isClosed()){
-                    connect();
-                }
-                else {
-                    conn.close();
-                    connect();
-                }
                 flushBuffer();
             }
         }
