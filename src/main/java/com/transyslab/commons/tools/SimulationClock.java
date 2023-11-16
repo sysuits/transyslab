@@ -112,7 +112,8 @@ public class SimulationClock {
 
 	public double parseTime(String timeStr){
 		if (timeStr.contains(":")){
-			LocalDateTime time = LocalDateTime.parse(timeStr,DATETIME_OUT);
+//			.replace(' ','T') change datetime format to default mode. XXXX-XX-XXTXX:XX:XX.X
+			LocalDateTime time = LocalDateTime.parse(timeStr.replace(' ','T'));
 			return secondsUntil(time);
 		}
 		else {

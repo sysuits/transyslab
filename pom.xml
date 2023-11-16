@@ -2,13 +2,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.transyslab</groupId>
 	<artifactId>transyslab</artifactId>
-	<version>1.1.1</version>
+	<version>mlp-snh-snapshot</version>
 	<name>TranSysLab</name>
 
 	<repositories>
 		<repository>
-			<id>sysu-dev</id>
-			<url>http://repo.trsim.group/repository/sysu-dev/</url>
+			<id>maven-public</id>
+			<url>http://repo.trsim.group:8888/repository/maven-public/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
@@ -30,12 +30,12 @@
 			<!--id的名字可以任意取，但是在setting文件中的属性<server>的ID与这里一致-->
 			<id>maven-releases</id>
 			<!--指向仓库类型为host(宿主仓库）的储存类型为Release的仓库-->
-			<url>http://repo.trsim.group/repository/sysu-releases/</url>
+			<url>http://repo.trsim.group:8888/repository/maven-releases/</url>
 		</repository>
 		<snapshotRepository>
 			<id>maven-snapshots</id>
 			<!--指向仓库类型为host(宿主仓库）的储存类型为Snapshot的仓库-->
-			<url>http://repo.trsim.group/repository/sysu-snapshots/</url>
+			<url>http://repo.trsim.group:8888/repository/maven-snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
 

@@ -886,25 +886,31 @@ public class MLPVehicle extends Vehicle{
 
 	public MLPLane nextLane(){
 		if (virtualType!=0){
+			// If the virtual type is not 0, check if the segment is an end segment. If it is, return null.
+			// Otherwise, return the first non-successive down lane if it exists, else return null.
 			return segment.isEndSeg() ?
 					null :
-					lane.successiveDnLanes.size()>0 ?
-							lane.successiveDnLanes.get(0) :
-							lane.nDnLanes()>0 ?
-									(MLPLane) lane.dnLane(0):
-									null;
+					lane.nDnLanes()>0 ?
+							(MLPLane) lane.dnLane(0):
+							null;
 		}
+		// If the virtual type is 0, and the segment is an end segment, select the first down connector's lane if it exists, else return null.
 		if (segment.isEndSeg()){
 			List<MLPConnector> conns = selectDnConns();
 			return conns==null ? null :conns.get(0).dnLane;
 		}
 
-		if (lane.successiveDnLanes.size()<=0)
+		// If the virtual type is 0 and the segment is not an end segment, return null if there are no successive down lanes.
+		List<MLPLane> candidates = lane.selectDnLane(segment.getDnSegment());
+		if (candidates.size() <= 0)
 			return null;
-		MLPLane nextLane = pickMinDiNextLane(lane.successiveDnLanes);
-		if (diMap.get(nextLane)<Double.POSITIVE_INFINITY)
+		// Pick the minimum distance next lane from the list of down lanes.
+		MLPLane nextLane = pickMinDiNextLane(candidates);
+		// Avoid the next lane if its distance is infinite, and it's not in the down lanes of the current lane.
+		if (diMap.get(nextLane)<Double.POSITIVE_INFINITY && lane.isInDnLanes(nextLane))
 			return nextLane;
 
+		// If the above condition is not met, find the next lane with the minimum distance among the down lanes of the current lane.
 		nextLane = null;
 		double di = Double.POSITIVE_INFINITY;
 		for (int i = 0; i < lane.nDnLanes(); i++) {

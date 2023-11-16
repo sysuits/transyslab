@@ -105,7 +105,7 @@ public class MLPSegment extends Segment{
 //			double coefVarLF = Math.sqrt(sumLFSquared/m - Math.pow(sumLF/m, 2))/(sumLF/m);
 //			double coefVarRT = Math.sqrt(sumRTSquared/m - Math.pow(sumRT/m, 2))/(sumRT/m);
 //			if (coefVarLF <= coefVarRT) {
-			//采用新的successiveDnlanes推断方法
+			//采用新的successiveDnlanes推断方法，即当所有的车道展宽均为向右拓展。
 			if (sumLF <= sumRT) {
 				for (int i = 0; i < m; i++) {
 					getLane(i).successiveDnLanes.add(dnSeg.getLane(i));
