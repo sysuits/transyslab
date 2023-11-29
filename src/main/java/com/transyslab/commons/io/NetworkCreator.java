@@ -58,15 +58,16 @@ public class NetworkCreator {
             GeoPoint tp = CoordTransformUtils.latlon2plane(new GeoPoint(pos.getX(),pos.getY(),pos.getZ()));
             roadNetwork.createNode(nodeid, type, "N" + String.valueOf(nodeid), tp);
         }
-        List<long[]> linkid = new ArrayList<>();
-        if(hasDoubleCR) {
-            sql = "select id, fnode_, tnode_ from doubleline ";
-            if (nodeIdList != null && !nodeIdList.equals(""))
-                sql += "where fnode_ in (" + nodeIdList + ") and tnode_ in (" + nodeIdList + ")";
-            linkid = readDoubleCR(sql);
-        }
+//        该数据库表格已弃置，双线中心线仅需要省略反向路段的组织部分
+//        List<long[]> linkid = new ArrayList<>();
+//        if(hasDoubleCR) {
+//            sql = "select id, fnode_, tnode_ from doubleline ";
+//            if (nodeIdList != null && !nodeIdList.equals(""))
+//                sql += "where fnode_ in (" + nodeIdList + ") and tnode_ in (" + nodeIdList + ")";
+//            linkid = readDoubleCR(sql);
+//        }
         // 中心线数据
-        sql = "select id, name, fnode, tnode, geom from topo_centerroad ";
+        sql = "select arcid, name, fnode, tnode, geom from topo_centerroad ";
         if (nodeIdList != null && !nodeIdList.equals(""))
             sql += "where fnode in (" + nodeIdList + ") and tnode in (" + nodeIdList + ")";
         List<Object[]> crData = DBUtils.queryDB(sql,"networkMppName");
@@ -97,18 +98,21 @@ public class NetworkCreator {
             long upNodeId = obj2Long(row[2]);
             long dnNodeId = obj2Long(row[3]);
             long id = crid;
-            if(hasDoubleCR) {
-                long[] ids = linkid.stream().filter(ls->ls[1] == upNodeId && ls[2] == dnNodeId).findFirst().orElse(null);
-                if(ids!=null)
-                    id = ids[0];
-            }
+//            该数据库表格已弃置，双线中心线仅需要省略反向路段的组织部分
+//            if(hasDoubleCR) {
+//                long[] ids = linkid.stream().filter(ls->ls[1] == upNodeId && ls[2] == dnNodeId).findFirst().orElse(null);
+//                if(ids!=null)
+//                    id = ids[0];
+//            }
             List<Object[]> sgmtPosFiltered;
             // 正向，数字化方向一致
             sgmtPosFiltered = linkData.stream().filter(sgmt->obj2Long(sgmt[2]) == crid && obj2Long(sgmt[3]) == 1).collect(Collectors.toList());
-            segInfer(sgmtPosFiltered, 1, id, linkName, upNodeId, dnNodeId, pgMultiLines2Points((PGgeometry)row[4],"link " + linkid), laneData, roadNetwork);
+            segInfer(sgmtPosFiltered, 1, id, linkName, upNodeId, dnNodeId, pgMultiLines2Points((PGgeometry)row[4],"link " + id), laneData, roadNetwork);
             // 反向
-            sgmtPosFiltered = linkData.stream().filter(sgmt->obj2Long(sgmt[2]) == crid && obj2Long(sgmt[3]) == -1).collect(Collectors.toList());
-            segInfer(sgmtPosFiltered, -1, id, linkName, upNodeId, dnNodeId, pgMultiLines2Points((PGgeometry)row[4],"link " + linkid), laneData, roadNetwork);
+            if (!hasDoubleCR) {
+                sgmtPosFiltered = linkData.stream().filter(sgmt->obj2Long(sgmt[2]) == crid && obj2Long(sgmt[3]) == -1).collect(Collectors.toList());
+                segInfer(sgmtPosFiltered, -1, id, linkName, upNodeId, dnNodeId, pgMultiLines2Points((PGgeometry)row[4],"link -" + id), laneData, roadNetwork);
+            }
         }
         // 目标区域的所有车道编号集，筛选出相关的车道连接器
         List<Long> laneIds = roadNetwork.getLanes().stream().mapToLong(e -> e.getId()).boxed().collect(Collectors.toList());
