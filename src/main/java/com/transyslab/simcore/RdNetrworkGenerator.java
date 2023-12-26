@@ -23,14 +23,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class RdNetrworkGenerator {
-    Document dom;
+    public Document dom;
+    public DocumentBuilder docBuilder;
     RoadNetwork rn;
 
     public RdNetrworkGenerator(){
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {
-            DocumentBuilder builder = dbf.newDocumentBuilder();
-            dom = builder.newDocument();
+            docBuilder = dbf.newDocumentBuilder();
+            dom = docBuilder.newDocument();
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("failed build xml");

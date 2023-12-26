@@ -3,8 +3,14 @@ package com.transyslab.app;
 import com.transyslab.simcore.RdNetrworkGenerator;
 
 public class NetworkConvert {
+
+    protected RdNetrworkGenerator generator;
+
+    protected void initGenerator() {
+        generator = new RdNetrworkGenerator();
+    }
+
     public static void main(String[] args) {
-        RdNetrworkGenerator generator = new RdNetrworkGenerator();
         if (args.length<1){
             System.err.println("miss master file.");
             return;
@@ -28,6 +34,8 @@ public class NetworkConvert {
                     return;
             }
         }
-        generator.writeXml(master,oFileName);
+        NetworkConvert nc = new NetworkConvert();
+        nc.initGenerator();
+        nc.generator.writeXml(master,oFileName);
     }
 }
