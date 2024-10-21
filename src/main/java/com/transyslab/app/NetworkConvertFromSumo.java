@@ -37,9 +37,9 @@ class SumoNetworkGenerator extends RdNetrworkGenerator{
 
             Element tslEle = dom.createElement("TranSysLab");
 
-            tslEle.appendChild(generateNodes(rn.getNodes()));
-            tslEle.appendChild(generateLinks(rn.getLinks()));
-            tslEle.appendChild(generateConnectors(rn.getConnectors()));
+//            tslEle.appendChild(generateNodes(rn.getNodes()));
+//            tslEle.appendChild(generateLinks(rn.getLinks()));
+//            tslEle.appendChild(generateConnectors(rn.getConnectors()));
             dom.appendChild(tslEle);
 
             if (outputFileName==null)
