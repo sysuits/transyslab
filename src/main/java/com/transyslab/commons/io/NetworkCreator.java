@@ -393,6 +393,7 @@ public class NetworkCreator {
             return ((Long) obj).longValue();
         if (obj instanceof String){
             String objStr = ((String) obj).replace(":","");
+            objStr = objStr.replace("+","_");
             if (objStr.contains("_")){
                 String[] tmp = objStr.split("_");
                 long ans = 0;
