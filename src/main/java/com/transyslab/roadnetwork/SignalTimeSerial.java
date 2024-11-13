@@ -9,6 +9,7 @@ public class SignalTimeSerial {
     public static final int AMBER = 2;
     public static final int RED = 1;
 
+    // adaptive signal series, format: G [g] [g] ... Y [R]
     private List<Double> timeSerial;
     private int currentIdx;
     private double remain;

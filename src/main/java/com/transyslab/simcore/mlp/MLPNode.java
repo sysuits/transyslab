@@ -30,6 +30,8 @@ public class MLPNode extends Node{
 	public static double NODE_PASS_SPD = 80.0/3.6;
 	private LinkedList<MLPVehicle> statedVehs;
 	protected double passSpd = 40.0/3.6;
+	// ssa log based signal plan inputs£¬with FTLinkID as keys
+	// end time is the end of amber light
 	private HashMap<String, List<double[]>> signalTable;
 	public HashMap<String, List<String>> confilctDirs;
 	public int stopCount;

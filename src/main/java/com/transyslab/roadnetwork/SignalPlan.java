@@ -25,6 +25,8 @@ import java.util.List;
 public class SignalPlan {
 	protected int id;
 	private List<SignalStage> stages;
+	// strategic based signal plan inputs£¬with stage id (or phase id) as keys
+	// end time is the end of amber light
 	private List<double[]> signalTable;
 	private double fTime;
 	private double tTime;
