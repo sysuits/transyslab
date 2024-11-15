@@ -855,9 +855,9 @@ public class MLPNetwork extends RoadNetwork {
 				}
 			}
 			//tmp remove filter
-//			ArrayList<TripPathRecord> trimRecords = TripPathProcess.filterRegion(records,nodeList);
+			ArrayList<TripPathRecord> trimRecords = TripPathProcess.filterRegion(records,nodeList);
 //			ArrayList<TripPathRecord> fixedFTime = TripPathProcess.estimateViaTime(trimRecords);
-			TripPathProcess.append2InFlow(records,this);
+			TripPathProcess.append2InFlow(trimRecords,this);
 		}
 		catch (Exception e){
 			System.err.println("fail loading inflow");

@@ -17,11 +17,21 @@ import java.util.*;
 public class TripPathProcess {
 
     private static TripPathProcess processor;
+    private MLPNetwork theRdNet;
 
     public static TripPathProcess getInstance(){
         if (processor==null)
             processor = Installer.getInstance(TripPathProcess.class);
         return processor;
+    }
+
+    public static TripPathProcess setRdNet(MLPNetwork net){
+        getInstance().theRdNet = net;
+        return processor;
+    }
+
+    public static MLPNetwork getRdNetwork(){
+        return getInstance().theRdNet;
     }
 
     public static ArrayList<TripPathRecord> QueryTripPath(LocalDateTime fromTime, LocalDateTime toTime, String mppName){
@@ -80,7 +90,7 @@ public class TripPathProcess {
                         startIndex = i;
                     }
                     else{
-                        if(preNode.equals(viaNodes[i-1])) { //连续开始，上一节点也在区域内
+                        if(preNode.equals(viaNodes[i-1]) && check_connectivity(viaNodes,i,commonCounter)) { //连续开始，上一节点也在区域内
                             commonCounter ++;
                             preNode = viaNodes[i];
                             endIndex = i;
@@ -110,6 +120,7 @@ public class TripPathProcess {
                     }
                 }
             }
+            // select longest partial path
             startIndex = -1;
             int max = 0;
             for(Integer key:info.keySet()){
@@ -119,13 +130,53 @@ public class TripPathProcess {
                     max = num;
                 }
             }
-            if(startIndex>0){
+            if(startIndex>=0){
+                // path has been trimmed or whole path is valid
                 String[] filterNodes =  Arrays.copyOfRange(viaNodes, startIndex,startIndex + max);
+                if (startIndex>0){
+                    // front links been trimmed
+                    double missingMileage = 0;
+                    if (getRdNetwork()!=null){
+                        String[] orginNodes = tpr.getViaNodes();
+                        for (int i = 0; i < startIndex-1; i++) {
+                            long fnid = Long.parseLong(orginNodes[i]);
+                            long tnid = Long.parseLong(orginNodes[i+1]);
+                            Link theLink = getRdNetwork().findLink(fnid,tnid);
+                            if (theLink==null)
+                                theLink = getRdNetwork().findLink(tnid, fnid);
+                            if (theLink==null)
+                                missingMileage += 100;
+                            else
+                                missingMileage += theLink.length();
+                        }
+                    }
+                    double tShift = missingMileage / 10.0;
+                    tpr.offsetUpTime(Math.round(tShift));
+                }
                 tpr.setViaNodes(filterNodes);
                 result.add(tpr);
             }
         }
         return result;
+    }
+    public static boolean check_connectivity(String[] viaNodes, int currentIdx, int nNodesAhead){
+        MLPNetwork rdNet = getRdNetwork();
+        if (rdNet==null || nNodesAhead<=0){
+            return true;
+        }
+        else {
+            Link currentLink = rdNet.findLink(Long.parseLong(viaNodes[currentIdx-1]),
+                                              Long.parseLong(viaNodes[currentIdx]));
+            if (currentLink==null)
+                return false;
+            if (nNodesAhead==1){
+                return true;
+            }
+            Link upLink = rdNet.findLink(Long.parseLong(viaNodes[currentIdx-2]),
+                                         Long.parseLong(viaNodes[currentIdx-1]));
+            return rdNet.findNode(Long.parseLong(viaNodes[currentIdx-1])).turningMap
+                    .containsKey(upLink.getId()+"_"+currentLink.getId());
+        }
     }
     public static ArrayList<TripPathRecord> estimateViaTime(ArrayList<TripPathRecord> nodeFilterTrips){
 //        ArrayList<TripPathRecord> results = new ArrayList<>();

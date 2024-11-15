@@ -422,6 +422,8 @@ public class MLPEngine extends SimulationEngine{
 			mlpNetwork.calcDbStaticInfo();
 //			// 读入路网数据后组织路网不同要素的关系
 //			mlpNetwork.calcStaticInfo();
+		// 设置依赖路网信息的工具类
+		TripPathProcess.setRdNet(mlpNetwork);
 		//读入配时方案
 		//需要先初始化仿真时钟，否则信控时间无法被解释
 		mlpNetwork.getSimClock().init(

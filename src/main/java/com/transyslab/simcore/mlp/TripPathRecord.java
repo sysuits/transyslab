@@ -33,6 +33,10 @@ public class TripPathRecord {
         return this.upTime;
     }
 
+    public void offsetUpTime(long shift){
+        this.upTime = this.upTime.plusSeconds(shift);
+    }
+
     public String getHphm() {
         return hphm;
     }
