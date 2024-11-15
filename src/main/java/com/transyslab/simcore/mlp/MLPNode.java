@@ -68,7 +68,7 @@ public class MLPNode extends Node{
 			if (intersectionPass(currentTime,veh.getLink().getId(),veh.getNextLink().getId())) {
 				//innermovement
 				List<MLPConnector> conns = veh.selectDnConns();
-				if (conns.size()<=0){
+				if (null==conns || conns.size()<=0){
 					veh.holdAtDnEnd();
 					return Constants.VEHICLE_NOT_RECYCLE;
 				}
