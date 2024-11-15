@@ -423,6 +423,9 @@ public class MLPEngine extends SimulationEngine{
 //			// 读入路网数据后组织路网不同要素的关系
 //			mlpNetwork.calcStaticInfo();
 		//读入配时方案
+		//需要先初始化仿真时钟，否则信控时间无法被解释
+		mlpNetwork.getSimClock().init(
+				config.getString("timeStart"), config.getString("timeEnd"), config.getDouble("timeStep"));
 		if (!(config.getString("signalPlan") == null || config.getString("signalPlan").equals("")))
 			readSignalPlan(runProperties.get("signalPlan"));
 		// 读入检测器数据
