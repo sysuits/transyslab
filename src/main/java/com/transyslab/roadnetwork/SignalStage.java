@@ -18,6 +18,7 @@ package com.transyslab.roadnetwork;
 
 import com.transyslab.simcore.mlp.MLPNode;
 import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -78,6 +79,8 @@ public class SignalStage {
 	}
 
 	public SignalStage initLIDPair(String ftLinkIds, MLPNode node){
+		// empty sig for passengers
+		if (StringUtils.isEmpty(ftLinkIds)){return this;}
 		String[] ftLinkStr = ftLinkIds.split("#");
 		for (int i = 0; i < ftLinkStr.length; i++) {
 			String[] ftlinkId = ftLinkStr[i].split("_");
